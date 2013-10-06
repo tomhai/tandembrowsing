@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script type='text/javascript' src='dwr/engine.js'> </script>
+<script type='text/javascript' src='dwr/interface/Control.js'> </script>
+<script type='text/javascript'>
+function receiveMessage(event) {
+	Control.processEvent(event.data, event.origin);
+}
+window.addEventListener('message', receiveMessage, false);
+
+function sendEvent(msg, to, event) {
+	parent.postMessage('{"event":{"msg":"'+msg+'","type":"'+event+'"}}', to);	
+}
+</script>
+</head>
+<body onLoad="dwr.engine.setActiveReverseAjax(true);" onunload="dwr.engine.setNotifyServerOnPageUnload(true);">Control proxy</body>
+</html>

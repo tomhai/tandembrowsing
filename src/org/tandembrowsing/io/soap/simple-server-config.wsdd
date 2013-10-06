@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" 	xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+	<service name="Callback" provider="java:RPC" style="wrapped" use="literal">
+		<parameter name="wsdlTargetNamespace" value="http://www.tandembrowsing.org" />
+		<parameter name="wsdlServiceElement" value="CallbackService" />
+		<parameter name="wsdlServicePort" value="Callback" />
+		<parameter name="className" value="org.tandembrowsing.io.soap.out.CallbackService" />
+		<parameter name="wsdlPortType" value="Callback" />
+		<!--parameter name="scope" value="Application" /-->
+  	<operation name="displayEvent" qname="ns1:displayEvent" returnQName="ns1:eventReturn" returnType="xsd:string" soapAction="" xmlns:ns1="http://www.tandembrowsing.org" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   		<parameter qname="ns1:eventType" type="xsd:string"/>
+  	</operation>
+		<parameter name="allowedMethods" value="displayEvent" />
+	</service>
+</deployment>

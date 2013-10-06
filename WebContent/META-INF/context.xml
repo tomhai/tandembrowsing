@@ -1,0 +1,8 @@
+<Context debug="5" reloadable="true" crossContext="true">
+  <Resource name="jdbc/tandembrowsing" auth="Container" type="javax.sql.DataSource"
+               maxActive="5" maxIdle="2" maxWait="10000"
+               validationQuery="select 1" testOnBorrow="true" 
+               username="tandembrowsing" password="tandembrowsing" driverClassName="com.mysql.jdbc.Driver"
+               url="jdbc:mysql://localhost:3306/tandembrowsing?autoReconnect=true"/>
+
+</Context>
