@@ -20,8 +20,8 @@ import org.w3c.dom.Node;
 import org.tandembrowsing.io.Event;
 import org.tandembrowsing.io.Operation;
 import org.tandembrowsing.io.db.DBUtil;
-import org.tandembrowsing.model.Cell;
-import org.tandembrowsing.model.Layout;
+import org.tandembrowsing.model.VirtualScreen;
+import org.tandembrowsing.model.MultipartPage;
 import org.tandembrowsing.model.ParsingException;
 import org.tandembrowsing.ui.LayoutManager;
 
@@ -59,7 +59,7 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 			removeOverride(state.getParent());
 	}
 
-	private boolean hasOverrideOperation(List<Operation> overrideList, Cell key) {
+	private boolean hasOverrideOperation(List<Operation> overrideList, VirtualScreen key) {
 		if(overrideList == null)
 			return false;
 		else {
@@ -67,7 +67,7 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 			while(it.hasNext()) {
 				Operation op = it.next();
 				// matching id found
-				if(op.getParameterValue(Cell.ID).equals(key.getId())) {
+				if(op.getParameterValue(VirtualScreen.ID).equals(key.getId())) {
 					return true;
 				}					
 			}
@@ -91,7 +91,7 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 			return getOverrideOperation(state.getParent());
 	}
 	
-	private Set <String> overrideCells(List<Operation> overrideList, Map<String, Cell> newCells, TransitionTarget state) {
+	private Set <String> overrideVirtualScreens(List<Operation> overrideList, Map<String, VirtualScreen> newVirtualScreens, TransitionTarget state) {
 		Set <String> contentChanged = new HashSet<String>();
 		if(overrideList == null) {
 			return contentChanged;
@@ -99,35 +99,35 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 			Iterator <Operation>it = overrideList.iterator();
 			while(it.hasNext()) {
 				Operation op = it.next();
-				String overriddenCellId = op.getParameterValue(Cell.ID);
+				String overriddenVirtualScreenId = op.getParameterValue(VirtualScreen.ID);
 				// matching id found
-				if(newCells.containsKey(overriddenCellId)) {
+				if(newVirtualScreens.containsKey(overriddenVirtualScreenId)) {
 					// in case of setContent
 					if(op.getName().equals(Event.SET_CONTENT)) {
-						String overriddenResource = op.getParameterValue(Cell.RESOURCE);
+						String overriddenResource = op.getParameterValue(VirtualScreen.RESOURCE);
 						// check if this is just a parameter update
-						newCells.get(overriddenCellId).setResource(LayoutManager.parseResource(overriddenResource, newCells.get(overriddenCellId).getResource()));
-						contentChanged.add(overriddenCellId+Event.SET_CONTENT);	
-						logger.fine("Override cell "+overriddenCellId+" content with "+ overriddenResource);
+						newVirtualScreens.get(overriddenVirtualScreenId).setResource(LayoutManager.parseResource(overriddenResource, newVirtualScreens.get(overriddenVirtualScreenId).getResource()));
+						contentChanged.add(overriddenVirtualScreenId+Event.SET_CONTENT);	
+						logger.fine("Override virtualscreen "+overriddenVirtualScreenId+" content with "+ overriddenResource);
 					} else if(op.getName().equals(Event.RESIZE_AND_MOVE)) {
-						Cell modifiedCell = newCells.get(overriddenCellId);
-						if(op.hasParameter(Cell.WIDTH))
-							modifiedCell.setWidth(Float.parseFloat(op.getParameterValue(Cell.WIDTH)));
-						if(op.hasParameter(Cell.HEIGHT))
-							modifiedCell.setHeight(Float.parseFloat(op.getParameterValue(Cell.HEIGHT)));
-						if(op.hasParameter(Cell.X_POSITION))
-							modifiedCell.setXPosition(Float.parseFloat(op.getParameterValue(Cell.X_POSITION)));
-						if(op.hasParameter(Cell.Y_POSITION))
-							modifiedCell.setYPosition(Float.parseFloat(op.getParameterValue(Cell.Y_POSITION)));
-						if(op.hasParameter(Cell.Z_INDEX))
-							modifiedCell.setZIndex(Integer.parseInt(op.getParameterValue(Cell.Z_INDEX)));
+						VirtualScreen modifiedVirtualScreen = newVirtualScreens.get(overriddenVirtualScreenId);
+						if(op.hasParameter(VirtualScreen.WIDTH))
+							modifiedVirtualScreen.setWidth(Float.parseFloat(op.getParameterValue(VirtualScreen.WIDTH)));
+						if(op.hasParameter(VirtualScreen.HEIGHT))
+							modifiedVirtualScreen.setHeight(Float.parseFloat(op.getParameterValue(VirtualScreen.HEIGHT)));
+						if(op.hasParameter(VirtualScreen.X_POSITION))
+							modifiedVirtualScreen.setXPosition(Float.parseFloat(op.getParameterValue(VirtualScreen.X_POSITION)));
+						if(op.hasParameter(VirtualScreen.Y_POSITION))
+							modifiedVirtualScreen.setYPosition(Float.parseFloat(op.getParameterValue(VirtualScreen.Y_POSITION)));
+						if(op.hasParameter(VirtualScreen.Z_INDEX))
+							modifiedVirtualScreen.setZIndex(Integer.parseInt(op.getParameterValue(VirtualScreen.Z_INDEX)));
 						
-						logger.fine("Override cell "+overriddenCellId+" dimensions");
+						logger.fine("Override virtualscreen "+overriddenVirtualScreenId+" dimensions");
 					} else if(op.getName().equals(Event.MUTE) || op.getName().equals(Event.UNMUTE)) {
-						Cell modifiedCell = newCells.get(overriddenCellId);
+						VirtualScreen modifiedVirtualScreen = newVirtualScreens.get(overriddenVirtualScreenId);
 						// check if this is just a parameter update
-						contentChanged.add(overriddenCellId+op.getName());
-						logger.fine("Override cell "+overriddenCellId+" with "+ op.getName());
+						contentChanged.add(overriddenVirtualScreenId+op.getName());
+						logger.fine("Override virtualscreen "+overriddenVirtualScreenId+" with "+ op.getName());
 					}
 				}					
 			}
@@ -156,13 +156,13 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 						logger.info("Unexpected number of Data elements size "+list.size());
 					} else {
 						Data data = (Data)list.get(0);
-						Node cells = data.getNode().getFirstChild();
-						// parse the target state virtual cells to newCells
-						Map <String, Cell> newCells = Layout.parseCells(cells);
-						// override newCells with possible overrides 
-						Set <String> operationTypes = overrideCells(overrideList, newCells, state);
+						Node multipartpage = data.getNode().getFirstChild();
+						// parse the target state virtual multipartpage to newMultipartpage
+						Map <String, VirtualScreen> newMultipartpage = MultipartPage.parseMultipartPage(multipartpage);
+						// override newVirtualScreens with possible overrides 
+						Set <String> operationTypes = overrideVirtualScreens(overrideList, newMultipartpage, state);
 						
-						layoutManager.changeLayout(smSession, newCells, operationTypes);
+						layoutManager.changeLayout(smSession, newMultipartpage, operationTypes);
 						
 					}
 				}

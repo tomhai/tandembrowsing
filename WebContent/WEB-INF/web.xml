@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
-  <display-name>LayoutManager</display-name>
+  <display-name>tandembrowsing</display-name>
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
     <welcome-file>index.html</welcome-file>
@@ -10,11 +10,11 @@
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
   <resource-ref>
-      <description>DB Connection</description>
-      <res-ref-name>jdbc/tandembrowsing</res-ref-name>
-      <res-type>javax.sql.DataSource</res-type>
-      <res-auth>Container</res-auth>
-  </resource-ref>  
+    <description>DB Connection</description>
+    <res-ref-name>jdbc/tandembrowsing</res-ref-name>
+    <res-type>javax.sql.DataSource</res-type>
+    <res-auth>Container</res-auth>
+  </resource-ref>
   <servlet>
     <servlet-name>dwr-invoker</servlet-name>
     <servlet-class>org.directwebremoting.servlet.DwrServlet</servlet-class>
@@ -68,15 +68,15 @@
     <url-pattern>/servlet/AdminServlet</url-pattern>
   </servlet-mapping>
   <filter>
-  	<filter-name>CompressingFilter</filter-name>
-  	<filter-class>com.planetj.servlet.filter.compression.CompressingFilter</filter-class>
-  	  <init-param>
-   		<param-name>excludePathPatterns </param-name>
-   		<param-value>.*/dwr/call.*,.*.dwr</param-value>
-  	  </init-param>
- </filter>
- <filter-mapping>
-  <filter-name>CompressingFilter</filter-name>
-  <url-pattern>/*</url-pattern>
- </filter-mapping>
+    <filter-name>CompressingFilter</filter-name>
+    <filter-class>com.planetj.servlet.filter.compression.CompressingFilter</filter-class>
+    <init-param>
+      <param-name>excludePathPatterns</param-name>
+      <param-value>.*/dwr/call.*,.*.dwr</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>CompressingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
 </web-app>

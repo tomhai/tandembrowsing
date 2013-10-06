@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,7 +21,7 @@ import org.directwebremoting.WebContextFactory;
 import org.directwebremoting.extend.ScriptSessionManager;
 
 import org.tandembrowsing.io.soap.CallbackClient;
-import org.tandembrowsing.model.Cell;
+import org.tandembrowsing.model.VirtualScreen;
 import org.tandembrowsing.state.StateMachine;
 
 public class LayoutManagerView {
@@ -32,16 +30,13 @@ public class LayoutManagerView {
 	
 	private static LayoutManagerView singletonObject;
 		
-	public static final String CONTEXTROOT = "/LayoutManager/";
+	public static final String CONTEXTROOT = "/tandembrowsing/";
 
 	private static final String BROWSER_KEY = "browser";
 	private static final String UUID_KEY = "uuid_key";
 	private static final String SESSION = "session";
 	private static final String STATUS_KEY = "status";
-	private static final String TOUCH = "touch";
-
-	private static String uupsFile;
-	public static String UUPS_PAGE; 
+	private static final String TOUCH = "touch"; 
 	
 	protected Set <String> callbackQueue;
 	
@@ -53,17 +48,7 @@ public class LayoutManagerView {
 	
 	private LayoutManagerView() 
 	{
-		ResourceBundle properties = ResourceBundle.getBundle("org.tandembrowsing.display");
 		callbackQueue = Collections.synchronizedSet(new HashSet<String>());
-		try {
-			uupsFile = properties.getString("uupsFile");
-			endpointAddress = properties.getString("Callback_address");
-			UUPS_PAGE = CONTEXTROOT+uupsFile;
-		} catch (MissingResourceException e) {
-			logger.log(Level.SEVERE, "Properties not found.", e);
-			uupsFile = "Uups.html";	
-			UUPS_PAGE = CONTEXTROOT+uupsFile;
-		}
 		Container container = ServerContextFactory.get().getContainer();
 		manager = container.getBean(ScriptSessionManager.class);
 		sessionTimers = new HashMap <String, Long>();
@@ -79,75 +64,75 @@ public class LayoutManagerView {
 		return singletonObject;		
 	}
 	
-	public void modifyCell(String smSession, Cell modifiedCell) throws LayoutException {	
+	public void modifyVirtualScreen(String smSession, VirtualScreen modifiedVirtualScreen) throws LayoutException {	
 		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
-		filter.add(BROWSER_KEY, new Check(modifiedCell.getBrowser(), false));
+		filter.add(BROWSER_KEY, new Check(modifiedVirtualScreen.getBrowser(), false));
 		filter.add(SESSION, new Check(smSession, false));
-		addFunctionCall(filter, "resizeAndMove", modifiedCell.getId(), modifiedCell.getWidth(), modifiedCell.getHeight(), modifiedCell.getXPosition(), modifiedCell.getYPosition(), modifiedCell.getZIndex(), 1000);
+		addFunctionCall(filter, "resizeAndMove", modifiedVirtualScreen.getId(), modifiedVirtualScreen.getWidth(), modifiedVirtualScreen.getHeight(), modifiedVirtualScreen.getXPosition(), modifiedVirtualScreen.getYPosition(), modifiedVirtualScreen.getZIndex(), 1000);
 	}
 		
 	/**
-	 * addCell does the actual drawing of the new cell and modifies the existing cells on javascript side
-	 * @param newCell
+	 * addVirtualScreen does the actual drawing of the new virtualscreen and modifies the existing virtualscreens on javascript side
+	 * @param newVirtualScreen
 	 * @param embeddedTag
 	 */
-	public void addCell(String smSession, Cell newCell) throws LayoutException {
-		if(!newCell.getId().startsWith("EMPTY")) {	
+	public void addVirtualScreen(String smSession, VirtualScreen newVirtualScreen) throws LayoutException {
+		if(!newVirtualScreen.getId().startsWith("EMPTY")) {	
 			BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
-			filter.add(BROWSER_KEY, new Check(newCell.getBrowser(), false));
+			filter.add(BROWSER_KEY, new Check(newVirtualScreen.getBrowser(), false));
 			filter.add(SESSION, new Check(smSession, false));
-			addFunctionCall(filter, "addCell", newCell.getId(), newCell.getWidth(), newCell.getHeight(), newCell.getXPosition(), newCell.getYPosition(), newCell.getZIndex(), newCell.getBorder(), newCell.getResource());
+			addFunctionCall(filter, "addVirtualScreen", newVirtualScreen.getId(), newVirtualScreen.getWidth(), newVirtualScreen.getHeight(), newVirtualScreen.getXPosition(), newVirtualScreen.getYPosition(), newVirtualScreen.getZIndex(), newVirtualScreen.getBorder(), newVirtualScreen.getResource());
 			
 			/*BrowserScriptSessionFilter exclusiveFilter = new BrowserScriptSessionFilter();
-			exclusiveFilter.add(BROWSER_KEY, new Check(newCell.getBrowser(), true));
+			exclusiveFilter.add(BROWSER_KEY, new Check(newVirtualScreen.getBrowser(), true));
 			exclusiveFilter.add(SESSION, new Check(smSession, false));
-			addFunctionCall(exclusiveFilter, "addCell", newCell.getId(), 0, 0, 0, 0, 0, 0, LayoutManagerView.CONTEXTROOT+"stub.html");*/
+			addFunctionCall(exclusiveFilter, "addVirtualScreen", newVirtualScreen.getId(), 0, 0, 0, 0, 0, 0, LayoutManagerView.CONTEXTROOT+"stub.html");*/
 		}
 	}
 	
-	public void initLayout(String smSession, Cell newCell) throws LayoutException {
-		if(!newCell.getId().startsWith("EMPTY")) {	
+	public void initLayout(String smSession, VirtualScreen newVirtualScreen) throws LayoutException {
+		if(!newVirtualScreen.getId().startsWith("EMPTY")) {	
 			BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
 			filter.add(STATUS_KEY, new Check("initSession", false));
 			filter.add(SESSION, new Check(smSession, false));
-			addFunctionCall(filter, "addCell", newCell.getId(), newCell.getWidth(), newCell.getHeight(), newCell.getXPosition(), newCell.getYPosition(), newCell.getZIndex(), newCell.getBorder(), newCell.getResource());
+			addFunctionCall(filter, "addVirtualScreen", newVirtualScreen.getId(), newVirtualScreen.getWidth(), newVirtualScreen.getHeight(), newVirtualScreen.getXPosition(), newVirtualScreen.getYPosition(), newVirtualScreen.getZIndex(), newVirtualScreen.getBorder(), newVirtualScreen.getResource());
 		}		
 	}
 	
 	/**
-	 * removeCell does the actual removing of the cell and modifies the remaining cells if needed on the javascript side
-	 * @param cell
+	 * removeVirtualScreen does the actual removing of the virtualscreen and modifies the remaining virtualscreens if needed on the javascript side
+	 * @param virtualscreen
 	 * @return
 	 */
-	public void removeCell(String smSession, Cell cell) throws LayoutException {		
+	public void removeVirtualScreen(String smSession, VirtualScreen virtualscreen) throws LayoutException {		
 		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
-		filter.add(BROWSER_KEY, new Check(cell.getBrowser(), false));
+		filter.add(BROWSER_KEY, new Check(virtualscreen.getBrowser(), false));
 		filter.add(SESSION, new Check(smSession, false));
-		addFunctionCall(filter, "removeCell", cell.getId());
+		addFunctionCall(filter, "removeVirtualScreen", virtualscreen.getId());
 	}
 	
 	/**
 	 * setContent does the actual drawing of the new content on the javascript side
-	 * @param modifiedCell
+	 * @param modifiedVirtualScreen
 	 * @param embeddedTag
 	 */
-	public void setContent(String smSession, Cell modifiedCell) throws LayoutException {
+	public void setContent(String smSession, VirtualScreen modifiedVirtualScreen) throws LayoutException {
 		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
 		filter.add(SESSION, new Check(smSession, false));
-		addFunctionCall(filter, "setCellContentSrc", modifiedCell.getId(), modifiedCell.getResource());
+		addFunctionCall(filter, "setVirtualScreenContentSrc", modifiedVirtualScreen.getId(), modifiedVirtualScreen.getResource());
 	}
 	
 	//ei toimi, kun ei oo parsettanut SCXML:הה. Korjaa
-	public void mute(String smSession, Cell cell) throws LayoutException {
+	public void mute(String smSession, VirtualScreen virtualscreen) throws LayoutException {
 		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
 		filter.add(SESSION, new Check(smSession, false));
-		addFunctionCall(filter, "muteCell", cell.getId());
+		addFunctionCall(filter, "muteVirtualScreen", virtualscreen.getId());
 	}
 	//ei toimi, kun ei oo parsettanut SCXML:הה. Korjaa	
-	public void unMute(String smSession, Cell cell) throws LayoutException {
+	public void unMute(String smSession, VirtualScreen virtualscreen) throws LayoutException {
 		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
 		filter.add(SESSION, new Check(smSession, false));
-		addFunctionCall(filter, "unMuteCell", cell.getId());
+		addFunctionCall(filter, "unMuteVirtualScreen", virtualscreen.getId());
 	}
 	
 	public synchronized void initSession(String uuid_key, String browser, String smSession) {
@@ -178,7 +163,7 @@ public class LayoutManagerView {
 		filter.add(filterName, new Check(filterValue, false));
 	    addFunctionCall(filter, "setAttribute", attributeName, attributeValue);    
 	    
-	    Browser.withPageFiltered("/LayoutManager/index.jsp", filter, new Runnable()
+	    Browser.withPageFiltered(CONTEXTROOT+"index.jsp", filter, new Runnable()
         {
             public void run()
             {            	
@@ -200,7 +185,7 @@ public class LayoutManagerView {
 	public void getAttribute(String filterName, String filterValue, final String attributeName) {
 		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
 		filter.add(filterName, new Check(filterValue, false));
-		Browser.withPageFiltered("/LayoutManager/index.jsp", filter, new Runnable()
+		Browser.withPageFiltered(CONTEXTROOT+"index.jsp", filter, new Runnable()
 		{
 	        public void run()
 	        {            	
@@ -261,7 +246,7 @@ public class LayoutManagerView {
 	public void addFunctionCall(ScriptSessionFilter filter, final String funcName, final Object... params)
     {       
 
-        Browser.withPageFiltered("/LayoutManager/index.jsp", filter, new Runnable()
+        Browser.withPageFiltered(CONTEXTROOT+"index.jsp", filter, new Runnable()
         {
             public void run()
             {            	
@@ -274,7 +259,7 @@ public class LayoutManagerView {
 	
 	public void addFunctionCallAll(final String funcName, final Object... params)
     {       
-        Browser.withPage("/LayoutManager/index.jsp", new Runnable()
+        Browser.withPage(CONTEXTROOT+"index.jsp", new Runnable()
         {
             public void run()
             {            	
@@ -332,12 +317,6 @@ public class LayoutManagerView {
 	    }	
 	}
 
-	public void postMessage(String data, String cell_id, String origin, String browser, String smSession) {
-		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
-		filter.add(BROWSER_KEY, new Check(browser, true));
-		filter.add(SESSION, new Check(smSession, true));
-		addFunctionCall(filter, "postMessageProxyOut", data, cell_id, origin);
-	}
 	
 	private class Check {
 		private String attributeValue;

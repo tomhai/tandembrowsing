@@ -17,7 +17,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import org.tandembrowsing.model.Cell;
+import org.tandembrowsing.model.VirtualScreen;
 import org.tandembrowsing.state.StateMachineSession;
 
 public class DBUtil {
@@ -68,7 +68,7 @@ public class DBUtil {
 		}
 	}
 	
-	public static void addVirtualScreen(String smSession, Cell cell) {
+	public static void addVirtualScreen(String smSession, VirtualScreen cell) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
@@ -96,7 +96,7 @@ public class DBUtil {
 		}
 	}
 	
-	public static void load(String smSession, Map <String, Cell>cells) {
+	public static void load(String smSession, Map <String, VirtualScreen>cells) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
@@ -106,7 +106,7 @@ public class DBUtil {
 			ResultSet rset = pstmt.executeQuery();
 			while(rset.next()) {
 				String id = rset.getString(1);
-				cells.put(id, new Cell(id, rset.getString(2), rset.getString(3), rset.getFloat(4), rset.getFloat(5), rset.getFloat(6), rset.getFloat(7), rset.getInt(8), rset.getFloat(9), rset.getBoolean(10)));
+				cells.put(id, new VirtualScreen(id, rset.getString(2), rset.getString(3), rset.getFloat(4), rset.getFloat(5), rset.getFloat(6), rset.getFloat(7), rset.getInt(8), rset.getFloat(9), rset.getBoolean(10)));
 			}
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Cell insert to db failed. Inmemory operation only.", e);
@@ -136,7 +136,7 @@ public class DBUtil {
 		}
 	}
 
-	public static void modifyVirtualScreen(String smSession, Cell cell) {
+	public static void modifyVirtualScreen(String smSession, VirtualScreen cell) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
@@ -207,10 +207,10 @@ public class DBUtil {
 	}
 	
 
-	public static void store(String smSession, Map<String, Cell> cells) {
+	public static void store(String smSession, Map<String, VirtualScreen> cells) {
 		removeVirtualScreens(smSession);
-		Collection <Cell> values = cells.values();
-		for(Cell i : values) {
+		Collection <VirtualScreen> values = cells.values();
+		for(VirtualScreen i : values) {
 			addVirtualScreen(smSession, i);
 		}
 	}

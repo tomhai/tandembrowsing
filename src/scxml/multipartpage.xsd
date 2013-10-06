@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.tandembrowsing.org/multipartpage/" xmlns:tns="http://www.tandembrowsing.org/multipartpage/" elementFormDefault="qualified">
+	<element name="multipartpage">
+	  <complexType>
+	    <sequence>
+	      <element name="virtualscreen" minOccurs="1" maxOccurs="unbounded">
+	       	<complexType>
+	    			<attribute name="id" use="required" type="string"/>
+	    			<attribute name="resource" use="required" type="anyURI"/>
+	    			<attribute name="browser" use="required" type="string"/>
+	    			<attribute name="width" use="required" type="tns:relativeSize"/>
+	    			<attribute name="height" use="required" type="tns:relativeSize"/>
+	    			<attribute name="xPosition" use="required" type="tns:relativeSize"/>
+	    			<attribute name="yPosition" use="required" type="tns:relativeSize"/>
+	    			<attribute name="zIndex" use="optional" type="integer" default="0"/>
+	    			<attribute name="resizable" use="optional" type="boolean" default="false"/>
+	       	</complexType>
+	      </element>
+	    </sequence>
+	  </complexType>
+	</element>
+	<simpleType name="relativeSize">
+		<restriction base="decimal">
+			<minInclusive value="0"/>
+			<maxInclusive value="1"/>
+		</restriction>
+	</simpleType>
+</schema>

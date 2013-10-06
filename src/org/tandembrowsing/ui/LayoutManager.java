@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 
 import org.tandembrowsing.io.Event;
 import org.tandembrowsing.io.Operation;
-import org.tandembrowsing.model.Cell;
-import org.tandembrowsing.model.Layout;
+import org.tandembrowsing.model.VirtualScreen;
+import org.tandembrowsing.model.MultipartPage;
 import org.tandembrowsing.state.StateMachine;
 
 public class LayoutManager {
@@ -24,7 +24,7 @@ public class LayoutManager {
 	
 	private static Logger logger = Logger.getLogger("org.tandembrowsing");
 
-	private Map <String, Layout> layouts = new HashMap<String, Layout>(); 
+	private Map <String, MultipartPage> layouts = new HashMap<String, MultipartPage>(); 
 	private static LayoutManagerView view;
 	private static String LM_HOST = "LM_HOST";
 	private String hostName = System.getenv("HOSTNAME");
@@ -46,95 +46,95 @@ public class LayoutManager {
 	}
 	
 	/**
-	 * addCell adds a cell to the layout
-	 * @param cell
+	 * addVirtualScreen adds a virtualscreen to the layout
+	 * @param virtualscreen
 	 * @return 
 	 * @throws LayoutException 
 	 */
-	public void addCell(String smSession, Cell cell) throws LayoutException {	
+	public void addVirtualScreen(String smSession, VirtualScreen virtualscreen) throws LayoutException {	
 		try {
-			cell.setResource(transformURL(cell.getResource()));
-			logger.log(Level.INFO, "addCell " +cell.toString());
-			view.addCell(smSession, cell);
+			virtualscreen.setResource(transformURL(virtualscreen.getResource()));
+			logger.log(Level.INFO, "addVirtualScreen " +virtualscreen.toString());
+			view.addVirtualScreen(smSession, virtualscreen);
 		} catch (LayoutException e) {
-			logger.log(Level.SEVERE, "No response from view for cell "+cell.getId()+","+cell.getResource(), e);
+			logger.log(Level.SEVERE, "No response from view for virtualscreen "+virtualscreen.getId()+","+virtualscreen.getResource(), e);
 			throw e;
 		}
 	}
 	
-	public void reload(String smSession, Cell cell) throws LayoutException {
-		if(cell == null)
-			throw new LayoutException("Cell does not exits. reload ignored.");
-		logger.log(Level.INFO, "reload " +cell.getId());
-		setContent(smSession, cell);
+	public void reload(String smSession, VirtualScreen virtualscreen) throws LayoutException {
+		if(virtualscreen == null)
+			throw new LayoutException("VirtualScreen does not exits. reload ignored.");
+		logger.log(Level.INFO, "reload " +virtualscreen.getId());
+		setContent(smSession, virtualscreen);
 	}
 	
 	public void resizeAndMove(String smSession, Operation operation) throws LayoutException {
-		Cell modifiedCell = layouts.get(smSession).getCell(operation.getParameterValue(Cell.ID));
-		if(modifiedCell == null)
-			throw new LayoutException("Cell "+operation.getParameterValue(Cell.ID)+" does not exits. resizeAndMove ignored.");
-		if(modifiedCell.isResizable()) {
-			if(operation.hasParameter(Cell.WIDTH))
-				modifiedCell.setWidth(Float.parseFloat(operation.getParameterValue(Cell.WIDTH)));
-			if(operation.hasParameter(Cell.HEIGHT))
-				modifiedCell.setHeight(Float.parseFloat(operation.getParameterValue(Cell.HEIGHT)));
-			if(operation.hasParameter(Cell.X_POSITION))
-				modifiedCell.setXPosition(Float.parseFloat(operation.getParameterValue(Cell.X_POSITION)));
-			if(operation.hasParameter(Cell.Y_POSITION))
-				modifiedCell.setYPosition(Float.parseFloat(operation.getParameterValue(Cell.Y_POSITION)));
-			if(operation.hasParameter(Cell.Z_INDEX))
-				modifiedCell.setZIndex(Integer.parseInt(operation.getParameterValue(Cell.Z_INDEX)));
-			view.modifyCell(smSession, modifiedCell);
-			logger.log(Level.INFO, operation.getName()+" " +modifiedCell.toString());
+		VirtualScreen modifiedVirtualScreen = layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID));
+		if(modifiedVirtualScreen == null)
+			throw new LayoutException("VirtualScreen "+operation.getParameterValue(VirtualScreen.ID)+" does not exits. resizeAndMove ignored.");
+		if(modifiedVirtualScreen.isResizable()) {
+			if(operation.hasParameter(VirtualScreen.WIDTH))
+				modifiedVirtualScreen.setWidth(Float.parseFloat(operation.getParameterValue(VirtualScreen.WIDTH)));
+			if(operation.hasParameter(VirtualScreen.HEIGHT))
+				modifiedVirtualScreen.setHeight(Float.parseFloat(operation.getParameterValue(VirtualScreen.HEIGHT)));
+			if(operation.hasParameter(VirtualScreen.X_POSITION))
+				modifiedVirtualScreen.setXPosition(Float.parseFloat(operation.getParameterValue(VirtualScreen.X_POSITION)));
+			if(operation.hasParameter(VirtualScreen.Y_POSITION))
+				modifiedVirtualScreen.setYPosition(Float.parseFloat(operation.getParameterValue(VirtualScreen.Y_POSITION)));
+			if(operation.hasParameter(VirtualScreen.Z_INDEX))
+				modifiedVirtualScreen.setZIndex(Integer.parseInt(operation.getParameterValue(VirtualScreen.Z_INDEX)));
+			view.modifyVirtualScreen(smSession, modifiedVirtualScreen);
+			logger.log(Level.INFO, operation.getName()+" " +modifiedVirtualScreen.toString());
 		} else {
-			logger.severe("resizeAndMove ignored for "+operation.getParameterValue(Cell.ID));
+			logger.severe("resizeAndMove ignored for "+operation.getParameterValue(VirtualScreen.ID));
 		}
 	}
 	
 	
 	/**
-	 * setContent sets new content on a given cell that already exist on the layout
-	 * @param cell
+	 * setContent sets new content on a given virtualscreen that already exist on the layout
+	 * @param virtualscreen
 	 * @return
 	 * @throws LayoutException 
 	 */
-	public void setContent(String smSession, Cell cell) throws LayoutException {
+	public void setContent(String smSession, VirtualScreen virtualscreen) throws LayoutException {
 		try {
-			cell.setResource(transformURL(cell.getResource()));
-			logger.log(Level.INFO, "setContent " +cell.toString());
-			view.setContent(smSession, cell);
+			virtualscreen.setResource(transformURL(virtualscreen.getResource()));
+			logger.log(Level.INFO, "setContent " +virtualscreen.toString());
+			view.setContent(smSession, virtualscreen);
 		} catch (LayoutException e) {
-			logger.log(Level.SEVERE, "No response from view for cell "+cell.getId()+","+cell.getResource(), e);
+			logger.log(Level.SEVERE, "No response from view for virtualscreen "+virtualscreen.getId()+","+virtualscreen.getResource(), e);
 			throw e;
 		}
 	}
 	
 	/**
-	 * mute mutes the cell with cellId if possible. This method can be run multiple times. 
-	 * Further calls won't make any effect if the cell is already muted.
+	 * mute mutes the virtualscreen with virtualscreenId if possible. This method can be run multiple times. 
+	 * Further calls won't make any effect if the virtualscreen is already muted.
 	 *  
-	 * @param cellId
+	 * @param virtualscreenId
 	 * @throws LayoutException
 	 */
-	public void mute(String smSession, Cell cell) throws LayoutException {
-		logger.log(Level.INFO, "mute " +cell.getId());
-		view.mute(smSession, cell);
+	public void mute(String smSession, VirtualScreen virtualscreen) throws LayoutException {
+		logger.log(Level.INFO, "mute " +virtualscreen.getId());
+		view.mute(smSession, virtualscreen);
 	}
 	
 	/**
-	 * mute mutes the cell with cellId if possible. This method can be run multiple times. 
-	 * Further calls won't make any effect if the cell is already muted.
+	 * mute mutes the virtualscreen with virtualscreenId if possible. This method can be run multiple times. 
+	 * Further calls won't make any effect if the virtualscreen is already muted.
 	 *  
-	 * @param cellId
+	 * @param virtualscreenId
 	 * @throws LayoutException
 	 */
-	public void unMute(String smSession, Cell cell) throws LayoutException {
-		logger.log(Level.INFO, "unMute " +cell.getId());
-		view.unMute(smSession, cell);
+	public void unMute(String smSession, VirtualScreen virtualscreen) throws LayoutException {
+		logger.log(Level.INFO, "unMute " +virtualscreen.getId());
+		view.unMute(smSession, virtualscreen);
 	}
 	
 	/**
-	 * Called when index.html is loaded. Propagates the created cells. 
+	 * Called when index.html is loaded. Propagates the created virtualscreens. 
 	 */
 	public synchronized void initSession(String uuid_key, String browser, String requestIP, String method, int fullWidth, int fullHeight, String smSession) throws LayoutException	{
 		logger.log(Level.INFO, "Session "+smSession+" initialized from "+requestIP+" via "+method+" by " + browser + ".");
@@ -143,19 +143,19 @@ public class LayoutManager {
 	}
 		
 	/**
-	 * Called when index.html is loaded. Propagates the created cells. 
+	 * Called when index.html is loaded. Propagates the created virtualscreens. 
 	 */
 	public synchronized void initLayout(String smSession, String browser, int fullWidth, int fullHeight) throws LayoutException	{
 		logger.log(Level.INFO, "Initialize layout. Screen size ("+fullWidth+", "+fullHeight+")");
 		if(layouts.containsKey(smSession)) {
-			Cell [] cells = layouts.get(smSession).getBrowserCells(browser);
-			for(Cell cell : cells) {
+			VirtualScreen [] virtualscreens = layouts.get(smSession).getBrowserVirtualScreens(browser);
+			for(VirtualScreen virtualscreen : virtualscreens) {
 				try {			
-					cell.setResource(transformURL(cell.getResource()));
-					view.initLayout(smSession, cell);
+					virtualscreen.setResource(transformURL(virtualscreen.getResource()));
+					view.initLayout(smSession, virtualscreen);
 				} catch (LayoutException e) {
 					//TODO: inform StateMachine!!!
-					logger.log(Level.SEVERE, "No response from view for cell "+cell.getId()+","+cell.getResource(), e);
+					logger.log(Level.SEVERE, "No response from view for virtualscreen "+virtualscreen.getId()+","+virtualscreen.getResource(), e);
 				}	
 			}
 		} else {
@@ -168,11 +168,11 @@ public class LayoutManager {
 	/**
 	 * Called when statemachine arrives to a state.
 	 * 
-	 * The target state cells properties might have been overridden with the same stateChange command. 
+	 * The target state virtualscreens properties might have been overridden with the same stateChange command. 
 	 * 
-	 * Compares the list of cells in previous state to the cells in new state in the statemachine description.
-	 * The possible differences for each cell and corresponding actions are:
-	 *    1) Cell already exists
+	 * Compares the list of virtualscreens in previous state to the virtualscreens in new state in the statemachine description.
+	 * The possible differences for each virtualscreen and corresponding actions are:
+	 *    1) VirtualScreen already exists
 	 *       1.1) EQUAL
 	 *           - if override operation exist -> override
 	 *           - else -> do nothing 
@@ -180,36 +180,36 @@ public class LayoutManager {
 	 *       	 - if override operations exist -> override
 	 *           - else -> set new content 
 	 *       1.3) GROWN
-	 *       	 - modify cell size
+	 *       	 - modify virtualscreen size
 	 *           - if override operations exist -> override           
 	 *       1.4) SHRUNK
-	 *           - modify cell size
+	 *           - modify virtualscreen size
 	 *           - if override operations exist -> override  
-	 *    2) Cell is NEW
-	 *    	 - if override operation exist -> add new cell with overridden parameters
-	 *       - else add new cell
-	 *    3) Cell has been REMOVED
-	 *       - remove cell (ignore possible override operation)
+	 *    2) VirtualScreen is NEW
+	 *    	 - if override operation exist -> add new virtualscreen with overridden parameters
+	 *       - else add new virtualscreen
+	 *    3) VirtualScreen has been REMOVED
+	 *       - remove virtualscreen (ignore possible override operation)
 	 */
-	public void changeLayout(String smSession, Map <String, Cell> newCells, Set <String> operationTypes) {
+	public void changeLayout(String smSession, Map <String, VirtualScreen> newVirtualScreens, Set <String> operationTypes) {
 		try {
 			// calculate difference "vector" with special formula
-			Map <Cell, String> diff = layouts.get(smSession).difference(newCells, operationTypes);				
-			Iterator <Map.Entry<Cell, String>> it = diff.entrySet().iterator();
+			Map <VirtualScreen, String> diff = layouts.get(smSession).difference(newVirtualScreens, operationTypes);				
+			Iterator <Map.Entry<VirtualScreen, String>> it = diff.entrySet().iterator();
 			while (it.hasNext()) {
-		        Map.Entry <Cell, String> pairs = (Map.Entry<Cell, String>)it.next();
-		        logger.fine("Cell "+pairs.getKey().getId()+" is "+pairs.getValue());
-		        if(pairs.getValue() == Layout.GROWN || pairs.getValue() == Layout.SHRUNK) {			        	
-			        view.modifyCell(smSession, pairs.getKey()); 
+		        Map.Entry <VirtualScreen, String> pairs = (Map.Entry<VirtualScreen, String>)it.next();
+		        logger.fine("VirtualScreen "+pairs.getKey().getId()+" is "+pairs.getValue());
+		        if(pairs.getValue() == MultipartPage.GROWN || pairs.getValue() == MultipartPage.SHRUNK) {			        	
+			        view.modifyVirtualScreen(smSession, pairs.getKey()); 
 			        if(operationTypes.contains(pairs.getKey().getId()+Event.SET_CONTENT))
 			        	setContent(smSession, pairs.getKey());
-		        } else if(pairs.getValue() == Layout.EQUAL) {				        
+		        } else if(pairs.getValue() == MultipartPage.EQUAL) {				        
 		        	if(operationTypes.contains(pairs.getKey().getId()+Event.SET_CONTENT))
 			        	setContent(smSession, pairs.getKey());
-		        } else if(pairs.getValue() == Layout.NEW) {
-		        	addCell(smSession, pairs.getKey());					        	
-		        } else if(pairs.getValue() == Layout.REMOVED) {
-		        	view.removeCell(smSession, pairs.getKey());
+		        } else if(pairs.getValue() == MultipartPage.NEW) {
+		        	addVirtualScreen(smSession, pairs.getKey());					        	
+		        } else if(pairs.getValue() == MultipartPage.REMOVED) {
+		        	view.removeVirtualScreen(smSession, pairs.getKey());
 		        } else {
 		        	logger.severe("Unknown operation : "+pairs.getValue());
 		        }        
@@ -238,26 +238,26 @@ public class LayoutManager {
 		
 	private void processOperation(String smSession, Operation operation) throws LayoutException {
 		if (operation.getName().equals("setContent")) {
-			Cell modifiedCell = layouts.get(smSession).getCell(operation.getParameterValue(Cell.ID));
-			if(modifiedCell == null)
-				throw new LayoutException("Cell "+operation.getParameterValue(Cell.ID)+" does not exits. setContent " + operation.getParameterValue(Cell.RESOURCE) + " ignored.");
-			modifiedCell.setResource(transformURL(parseResource(operation.getParameterValue(Cell.RESOURCE), modifiedCell.getResource())));
-			setContent(smSession, modifiedCell);
+			VirtualScreen modifiedVirtualScreen = layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID));
+			if(modifiedVirtualScreen == null)
+				throw new LayoutException("VirtualScreen "+operation.getParameterValue(VirtualScreen.ID)+" does not exits. setContent " + operation.getParameterValue(VirtualScreen.RESOURCE) + " ignored.");
+			modifiedVirtualScreen.setResource(transformURL(parseResource(operation.getParameterValue(VirtualScreen.RESOURCE), modifiedVirtualScreen.getResource())));
+			setContent(smSession, modifiedVirtualScreen);
 		} else if (operation.getName().equals("reload")) {
-			reload(smSession, layouts.get(smSession).getCell(operation.getParameterValue(Cell.ID)));
+			reload(smSession, layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID)));
 		} else if (operation.getName().equals("resizeAndMove")) {
 			resizeAndMove(smSession, operation);
 		} else if (operation.getName().equals("mute")) {
 			// test first we can mute
-			if(operation.getParameterValue(Cell.ID).equals("broadcast") && layouts.get(smSession).hasCell(operation.getParameterValue(Cell.ID))) {
-				Cell cell = layouts.get(smSession).getCell(operation.getParameterValue(Cell.ID));
-				mute(smSession, cell);
+			if(operation.getParameterValue(VirtualScreen.ID).equals("broadcast") && layouts.get(smSession).hasVirtualScreen(operation.getParameterValue(VirtualScreen.ID))) {
+				VirtualScreen virtualscreen = layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID));
+				mute(smSession, virtualscreen);
 			}
 		} else if (operation.getName().equals("unMute")) {
 			// test first we can unmute
-			if(operation.getParameterValue(Cell.ID).equals("broadcast") && layouts.get(smSession).hasCell(operation.getParameterValue(Cell.ID))) {
-				Cell cell = layouts.get(smSession).getCell(operation.getParameterValue(Cell.ID));
-				unMute(smSession, cell);
+			if(operation.getParameterValue(VirtualScreen.ID).equals("broadcast") && layouts.get(smSession).hasVirtualScreen(operation.getParameterValue(VirtualScreen.ID))) {
+				VirtualScreen virtualscreen = layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID));
+				unMute(smSession, virtualscreen);
 			}
 		} else {
 			logger.severe("Unsupported operation : " +operation.getName());
@@ -306,11 +306,11 @@ public class LayoutManager {
 
 
 	public String getCurrentVirtualScreens(String smSession) {
-		return layouts.get(smSession).getCellsJSON();
+		return layouts.get(smSession).getVirtualScreensJSON();
 	}
 
 	public void addLayoutSession(String smSession) {
-		Layout layout = new Layout(hostName, smSession);
+		MultipartPage layout = new MultipartPage(hostName, smSession);
 		layouts.put(smSession, layout);
 	}
 

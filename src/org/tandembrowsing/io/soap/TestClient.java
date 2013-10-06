@@ -10,7 +10,7 @@ import javax.xml.rpc.ServiceException;
 import org.tandembrowsing.state.StateMachine;
 import org.tandembrowsing.io.Event;
 import org.tandembrowsing.io.Operation;
-import org.tandembrowsing.model.Cell;
+import org.tandembrowsing.model.VirtualScreen;
 
 public class TestClient implements IEventThread {
 
@@ -42,21 +42,21 @@ public class TestClient implements IEventThread {
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+",url:"+argsO[2]+")");
 						} else if(argsO[0].equalsIgnoreCase("resizeAndMove")) {
 							Operation resizeAndMove = event.addOperation(argsO[0]);
-							resizeAndMove.addParameter(Cell.ID, argsO[1]);
+							resizeAndMove.addParameter(VirtualScreen.ID, argsO[1]);
 							if(!argsO[2].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.WIDTH, argsO[2]);	
+								resizeAndMove.addParameter(VirtualScreen.WIDTH, argsO[2]);	
 							if(!argsO[3].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.HEIGHT, argsO[3]);
+								resizeAndMove.addParameter(VirtualScreen.HEIGHT, argsO[3]);
 							if(!argsO[4].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.X_POSITION, argsO[4]);
+								resizeAndMove.addParameter(VirtualScreen.X_POSITION, argsO[4]);
 							if(!argsO[5].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.Y_POSITION, argsO[5]);
+								resizeAndMove.addParameter(VirtualScreen.Y_POSITION, argsO[5]);
 							if(!argsO[6].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.Z_INDEX, argsO[6]);	
+								resizeAndMove.addParameter(VirtualScreen.Z_INDEX, argsO[6]);	
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+",width:"+argsO[2]+",height:"+argsO[3]+",xPosition:"+argsO[4]+",yPosition:"+argsO[5]+",zIndex:"+argsO[6]+")");
 						} else if(argsO[0].equalsIgnoreCase("reload") || argsO[0].equalsIgnoreCase("mute") || argsO[0].equalsIgnoreCase("unMute")) {
 							Operation reload = event.addOperation(argsO[0]);
-							reload.addParameter(Cell.ID, argsO[1]);		
+							reload.addParameter(VirtualScreen.ID, argsO[1]);		
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+")");
 						} else if(argsO[0].equalsIgnoreCase("run")) {
 							moreOperations = false;
@@ -82,26 +82,26 @@ public class TestClient implements IEventThread {
 						String argsO[] = inputO.split("\\s");
 						if(argsO[0].equalsIgnoreCase("setContent")) {
 							Operation setContent = event.addOperation(argsO[0]);
-							setContent.addParameter(Cell.ID, argsO[1]);
-							setContent.addParameter(Cell.RESOURCE, argsO[2]);				
+							setContent.addParameter(VirtualScreen.ID, argsO[1]);
+							setContent.addParameter(VirtualScreen.RESOURCE, argsO[2]);				
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+",url:"+argsO[2]+")");
 						} else if(argsO[0].equalsIgnoreCase("resizeAndMove")) {
 							Operation resizeAndMove = event.addOperation(argsO[0]);
-							resizeAndMove.addParameter(Cell.ID, argsO[1]);
+							resizeAndMove.addParameter(VirtualScreen.ID, argsO[1]);
 							if(!argsO[2].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.WIDTH, argsO[2]);	
+								resizeAndMove.addParameter(VirtualScreen.WIDTH, argsO[2]);	
 							if(!argsO[3].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.HEIGHT, argsO[3]);
+								resizeAndMove.addParameter(VirtualScreen.HEIGHT, argsO[3]);
 							if(!argsO[4].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.X_POSITION, argsO[4]);
+								resizeAndMove.addParameter(VirtualScreen.X_POSITION, argsO[4]);
 							if(!argsO[5].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.Y_POSITION, argsO[5]);
+								resizeAndMove.addParameter(VirtualScreen.Y_POSITION, argsO[5]);
 							if(!argsO[6].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(Cell.Z_INDEX, argsO[6]);	
+								resizeAndMove.addParameter(VirtualScreen.Z_INDEX, argsO[6]);	
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+",width:"+argsO[2]+",height:"+argsO[3]+",xPosition:"+argsO[4]+",yPosition:"+argsO[5]+",zIndex:"+argsO[6]+")");
 						} else if(argsO[0].equalsIgnoreCase("reload") || argsO[0].equalsIgnoreCase("mute") || argsO[0].equalsIgnoreCase("unMute")) {
 							Operation reload = event.addOperation(argsO[0]);
-							reload.addParameter(Cell.ID, argsO[1]);		
+							reload.addParameter(VirtualScreen.ID, argsO[1]);		
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+")");
 						} else if(argsO[0].equalsIgnoreCase("run")) {
 							moreOperations = false;

@@ -64,9 +64,6 @@ public class LayoutEventsHandler {
 	public synchronized void playbackError(String message) {
 		logger.severe(message);
 	}
-	
-	public synchronized void postMessage(String data, String cell_id, String origin, String browser, String smSession) {	
-		LayoutManagerView.getInstance().postMessage(data, cell_id, origin, browser, smSession);			
-	}
+
 
 }

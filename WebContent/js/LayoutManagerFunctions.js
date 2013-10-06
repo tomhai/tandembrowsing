@@ -1,13 +1,13 @@
 // public
-function muteCell(cellId) {
-    // Assumes that the broadcast cell is the first frame and contains the mute and unMute-functions
+function muteVirtualScreen(virtualscreenId) {
+    // Assumes that the broadcast virtualscreen is the first frame and contains the mute and unMute-functions
 	top.frames[0].mute();
 }
 
 //public
-function unMuteCell(cellId) {
-    // Assumes that the broadcast cell is the first frame and contains the mute and unMute-functions
-	// if cellId == 'broadcast'
+function unMuteVirtualScreen(virtualscreenId) {
+    // Assumes that the broadcast virtualscreen is the first frame and contains the mute and unMute-functions
+	// if virtualscreenId == 'broadcast'
 	top.frames[0].unMute();
 }
 
@@ -54,12 +54,12 @@ function setAttribute(attributeName, attributeValue) {
 }
 
 // public
-// argument 1 an arbitrary string which can be used as an handle for later access to the cell
+// argument 1 an arbitrary string which can be used as an handle for later access to the virtualscreen
 // arguments 2-5 are relative (a float from 0 to 1) and optional (i.e. can be left out in the function call)
 // the origo is in the upper left corner of the window
 // The border width can be set by passing the sixth argument (a float) 
-function addCell(divName, newWidth, newHeight, xPosition, yPosition, zIndex, borderWeight, content) {
-    console.log("addCell "+divName);
+function addVirtualScreen(divName, newWidth, newHeight, xPosition, yPosition, zIndex, borderWeight, content) {
+    console.log("addVirtualScreen "+divName);
     var newdiv = document.createElement('div');
     newdiv.setAttribute("id", divName);
     newdiv.setAttribute("style","position:absolute;background-color:transparent;z-index:"+zIndex);
@@ -72,7 +72,7 @@ function addCell(divName, newWidth, newHeight, xPosition, yPosition, zIndex, bor
 	}
 	var innerHtmlString = '<iframe style="background-color:transparent;overflow:hidden;" name="' + iframeName + '" id="' + iframeName + '" width="100%" height="100%" src="'+content+'" frameborder="0" vspace="0" hspace="0" marginwidth="0" marginheight="0"></iframe>';
   
-    var verticalEnlargementFactor   = (1 / newHeight); // Smaller cells should have a proportionally bigger border in percent
+    var verticalEnlargementFactor   = (1 / newHeight); // Smaller virtualscreens should have a proportionally bigger border in percent
     var horizontalEnlargementFactor = (1 / newWidth); // Horizontal aspect ratio is shrunk according to aspect ratio
     var verticalBorderSize   = verticalEnlargementFactor   * borderWeight;
     var horizontalBorderSize = horizontalEnlargementFactor * borderWeight;    
@@ -83,19 +83,19 @@ function addCell(divName, newWidth, newHeight, xPosition, yPosition, zIndex, bor
     innerHtmlString = '<div style="position:absolute; top: ' + verticalOffsetPercent + '; left: ' + horizontalOffsetPercent + '; width: ' + divWidthPercent + '; height: ' + divHeightPercent + '">' + innerHtmlString + '</div>';
     newdiv.innerHTML = innerHtmlString;
     document.body.appendChild(newdiv);
-    //setCellFrameHTMLContents(iframeName, '&nbsp;');
+    //setVirtualScreenFrameHTMLContents(iframeName, '&nbsp;');
 
     if(typeof newWidth != 'undefined' ) {
-        setCellWidth(divName, newWidth);
+        setVirtualScreenWidth(divName, newWidth);
     }
     if(typeof newHeight != 'undefined' ) {
-        setCellHeight(divName, newHeight);
+        setVirtualScreenHeight(divName, newHeight);
     }
     if(typeof xPosition != 'undefined' ) {
-        setCellXPosition(divName, xPosition);
+        setVirtualScreenXPosition(divName, xPosition);
     }
     if(typeof yPosition != 'undefined' ) {
-        setCellYPosition(divName, yPosition);
+        setVirtualScreenYPosition(divName, yPosition);
     }
 }
 
@@ -105,7 +105,7 @@ function getAspectRatio() {
 }
 
 // private
-function setCellFrameHTMLContents(divName, newHTMLContent) {
+function setVirtualScreenFrameHTMLContents(divName, newHTMLContent) {
     iframeObject = document.getElementById(divName);
     iframeDoc = iframeObject.contentDocument;
     if (iframeDoc == undefined || iframeDoc == null) { // This is for cross-browser compatibility
@@ -117,24 +117,24 @@ function setCellFrameHTMLContents(divName, newHTMLContent) {
 }
 
 function resizeAndMove(divName, newWidth, newHeight, newXPosition, newYPosition, newZIndex, transitionTime) {
-    var oldWidth = getCellWidth(divName);
-    var oldHeight = getCellHeight(divName);
-    var oldXPosition = getCellXPosition(divName);
-    var oldYPosition = getCellYPosition(divName);
+    var oldWidth = getVirtualScreenWidth(divName);
+    var oldHeight = getVirtualScreenHeight(divName);
+    var oldXPosition = getVirtualScreenXPosition(divName);
+    var oldYPosition = getVirtualScreenYPosition(divName);
     var framesPerSecond = 30;
     // ---- no editable parameters below ----
 
     var numberOfIncrements = (framesPerSecond / 1000) * transitionTime;
 	var widthFactor, heightFactor, xDirection, yDirection;
     if(oldWidth < newWidth) {
-        widthFactor = 1; // increment cell width
+        widthFactor = 1; // increment virtualscreen width
     } else {
-        widthFactor = -1; // decrement cell width
+        widthFactor = -1; // decrement virtualscreen width
     }
     if(oldHeight < newHeight) {
-    	heightFactor = 1; // increment cell height
+    	heightFactor = 1; // increment virtualscreen height
     } else {
-    	heightFactor = -1; // decrement cell height
+    	heightFactor = -1; // decrement virtualscreen height
     }
     if(oldXPosition > newXPosition) {
     	xDirection = -1;
@@ -177,18 +177,18 @@ function resizeAndMove(divName, newWidth, newHeight, newXPosition, newYPosition,
         currentXPosition = oldXPosition + (xPositionMovement * xDirection);
         currentYPosition = oldYPosition + (yPositionMovement * yDirection);
         
-        setTimeout("setCellXPosition('"+divName+"', "+currentXPosition+")", transitionTimeIncrement * i);
-        setTimeout("setCellYPosition('"+divName+"', "+currentYPosition+")", transitionTimeIncrement * i);
-        setTimeout("setCellzIndex('"+divName+"', "+newZIndex+")", transitionTimeIncrement * i);
-        setTimeout("setCellWidth( '"+divName+"', "+currentWidth+")", transitionTimeIncrement * i);
-        setTimeout("setCellHeight('"+divName+"', "+currentHeight+")", transitionTimeIncrement * i);
+        setTimeout("setVirtualScreenXPosition('"+divName+"', "+currentXPosition+")", transitionTimeIncrement * i);
+        setTimeout("setVirtualScreenYPosition('"+divName+"', "+currentYPosition+")", transitionTimeIncrement * i);
+        setTimeout("setVirtualScreenzIndex('"+divName+"', "+newZIndex+")", transitionTimeIncrement * i);
+        setTimeout("setVirtualScreenWidth( '"+divName+"', "+currentWidth+")", transitionTimeIncrement * i);
+        setTimeout("setVirtualScreenHeight('"+divName+"', "+currentHeight+")", transitionTimeIncrement * i);
     }
 }
 
 // public
-function setCellDimensions(divName, newWidth, newHeight) {
-    var oldWidth = getCellWidth(divName);
-    var oldHeight = getCellHeight(divName);
+function setVirtualScreenDimensions(divName, newWidth, newHeight) {
+    var oldWidth = getVirtualScreenWidth(divName);
+    var oldHeight = getVirtualScreenHeight(divName);
    
     var transitionTime = 1000; // ms
     var framesPerSecond = 30;
@@ -197,14 +197,14 @@ function setCellDimensions(divName, newWidth, newHeight) {
     var numberOfIncrements = (framesPerSecond / 1000) * transitionTime;
 	var widthFactor, heightFactor;
     if(oldWidth < newWidth) {
-        widthFactor = 1; // increment cell width
+        widthFactor = 1; // increment virtualscreen width
     } else {
-        widthFactor = -1; // decrement cell width
+        widthFactor = -1; // decrement virtualscreen width
     }
     if(oldHeight < newHeight) {
-        heightFactor = 1; // increment cell height
+        heightFactor = 1; // increment virtualscreen height
     } else {
-        heightFactor = -1; // decrement cell height
+        heightFactor = -1; // decrement virtualscreen height
     }
 
     var widthDifference = Math.abs((newWidth - oldWidth));
@@ -222,8 +222,8 @@ function setCellDimensions(divName, newWidth, newHeight) {
         heightIncrement = heightDifference * weightedTransitionStep;
         currentWidth  = oldWidth  + (widthIncrement  * widthFactor);
         currentHeight = oldHeight + (heightIncrement * heightFactor);
-        setTimeout("setCellWidth( '"+divName+"', "+currentWidth+")", transitionTimeIncrement * i);
-        setTimeout("setCellHeight('"+divName+"', "+currentHeight+")", transitionTimeIncrement * i);
+        setTimeout("setVirtualScreenWidth( '"+divName+"', "+currentWidth+")", transitionTimeIncrement * i);
+        setTimeout("setVirtualScreenHeight('"+divName+"', "+currentHeight+")", transitionTimeIncrement * i);
     }
 }
 
@@ -234,19 +234,19 @@ function weightTransitionStep(transitionStep) {
 }
 
 //private
-function setCellWidth(divName, newWidth) {
+function setVirtualScreenWidth(divName, newWidth) {
     var div = document.getElementById(divName);
     div.style.width = 100 * newWidth + "%";
 }
 
 //private
-function setCellHeight(divName, newHeight) {
+function setVirtualScreenHeight(divName, newHeight) {
     var div = document.getElementById(divName);
     div.style.height = 100 * newHeight + "%";
 }
 
 //private
-function getCellWidth(divName) {
+function getVirtualScreenWidth(divName) {
     var div = document.getElementById(divName);
     var divWidth = div.style.width;
 
@@ -260,7 +260,7 @@ function getCellWidth(divName) {
 }
 
 //private
-function getCellHeight(divName) {
+function getVirtualScreenHeight(divName) {
 
     var div = document.getElementById(divName);
     var divHeight = div.style.height;
@@ -285,13 +285,13 @@ function getFullHeight() {
 }
 
 // private
-function setCellXPosition(divName, xPosition) {
+function setVirtualScreenXPosition(divName, xPosition) {
     var div = document.getElementById(divName);
     div.style.left=(100*xPosition+"%");
 }
 
 //private
-function getCellXPosition(divName) {
+function getVirtualScreenXPosition(divName) {
     var div = document.getElementById(divName);
     var divXPosition = div.style.left;
     if(divXPosition.substr(-1) == "%") {
@@ -304,13 +304,13 @@ function getCellXPosition(divName) {
 }
 
 // private
-function setCellYPosition(divName, yPosition) {
+function setVirtualScreenYPosition(divName, yPosition) {
     var div = document.getElementById(divName);
     div.style.top=(100*yPosition)+"%";
 }
 
 //private
-function getCellYPosition(divName) {
+function getVirtualScreenYPosition(divName) {
     var div = document.getElementById(divName);
     var divYPosition = div.style.top;
     if(divYPosition.substr(-1) == "%") {
@@ -323,27 +323,27 @@ function getCellYPosition(divName) {
 }
 
 //private
-function setCellzIndex(divName, zIndex) {
+function setVirtualScreenzIndex(divName, zIndex) {
     var div = document.getElementById(divName);
     div.style.zIndex=zIndex;
 }
 
 // public
-function moveCell(divName, xPosition, yPosition, zIndex) {
-    setCellXPosition(divName, xPosition);
-    setCellYPosition(divName, yPosition);
-    setCellzIndex(divName, zIndex);
+function moveVirtualScreen(divName, xPosition, yPosition, zIndex) {
+    setVirtualScreenXPosition(divName, xPosition);
+    setVirtualScreenYPosition(divName, yPosition);
+    setVirtualScreenzIndex(divName, zIndex);
 }
 
 // public
-function setCellContents(divName, newContent) {
+function setVirtualScreenContents(divName, newContent) {
     var div = document.getElementById(divName);
     var iframeName = divName + '_iframe';
-    setCellFrameHTMLContents(iframeName, newContent);
+    setVirtualScreenFrameHTMLContents(iframeName, newContent);
 }
 
 // public
-function setCellContentSrc(divName, newContentSrc) {
+function setVirtualScreenContentSrc(divName, newContentSrc) {
     var iframeName = divName + '_iframe';
     iframeObject = document.getElementById(iframeName);
     if(newContentSrc.indexOf('?') == -1) {
@@ -354,8 +354,8 @@ function setCellContentSrc(divName, newContentSrc) {
 }
 
 // public
-function removeCell(divName) {
-	console.log("removeCell "+divName);
+function removeVirtualScreen(divName) {
+	console.log("removeVirtualScreen "+divName);
 	var olddiv = document.getElementById(divName);
 	document.body.removeChild(olddiv);
 }
