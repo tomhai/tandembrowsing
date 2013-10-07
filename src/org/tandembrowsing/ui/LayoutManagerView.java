@@ -44,8 +44,6 @@ public class LayoutManagerView {
 	Map <String, Long> sessionTimers;
 	Map <String, String> sessionkey;
 	
-	private static String endpointAddress;
-	
 	private LayoutManagerView() 
 	{
 		callbackQueue = Collections.synchronizedSet(new HashSet<String>());
@@ -271,9 +269,6 @@ public class LayoutManagerView {
     }
 	
 	public void keepAlive(String uuid_key, String browser) {
-		if(browser.equals("mobile")) {				
-			CallbackClient.displayEvent(TOUCH, endpointAddress);
-		}
 		if(sessionTimers.get(uuid_key) != null) {
 			BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
 			filter.add(UUID_KEY, new Check(uuid_key, false));
