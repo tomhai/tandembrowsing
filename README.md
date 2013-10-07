@@ -3,8 +3,8 @@ tandembrowsing
 
 Tandem Browsing toolkit - www.tandembrowsing.org
 
-This software can be used to browse web content synhronously using multiple devices. The web pages 
-can be standard web pages, which are listed ina specific finite state machines. The finite state 
+This software can be used to coordinate browsing sequences on multiple devices. The content is 
+just plain web pages, which are listed in specific finite state machines. The finite state 
 machines contain one or more states, which declaratively define how the web pages should be viewed
 on each device. The state machines use the State Chart XML (SCXML) syntax and each state contain 
 a multipart page definition www.tandembrowsing.org/multipartpage. 
