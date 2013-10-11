@@ -146,17 +146,17 @@ public class StateMachine {
 			if(event.getEventType().equalsIgnoreCase(Event.EVENT_CHANGE_STATE)) {
 				// for every change state clear all and store the event
 				if(event.hasOperations())
-					stateMachineSessions.get(event.getEventId()).overrideOperations(event.getEventName(), event.getOperations());
-				triggerEvent(event.getEventId(), event.getEventName());
-				logger.log(Level.INFO, "Got "+event.getEventId()+" "+event.getEventType()+ " to "+event.getEventName());
-				logger.fine("Done "+event.getEventId()+" "+event.getEventType()+" to "+event.getEventName());
+					stateMachineSessions.get(event.getEventSession()).overrideOperations(event.getEventName(), event.getOperations());
+				triggerEvent(event.getEventSession(), event.getEventName());
+				logger.log(Level.INFO, "Got "+event.getEventSession()+" "+event.getEventType()+ " to "+event.getEventName() + " via " +event.getEventInterface());
+				logger.fine("Done "+event.getEventSession()+" "+event.getEventType()+" to "+event.getEventName());
 			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_MODIFY_STATE)) {
 				// store this as well as it could potentionally change staff
-				logger.log(Level.INFO, "Got "+event.getEventId()+" "+event.getEventType());
-				layoutManager.processOperations(event.getEventId(), event.getOperations());
-				logger.fine("Done "+event.getEventId()+" "+event.getEventType());
+				logger.log(Level.INFO, "Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
+				layoutManager.processOperations(event.getEventSession(), event.getOperations());
+				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
 			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_CONFIGURE)) {
-				logger.info("Got "+event.getEventId()+" "+event.getEventType());
+				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
 				List <Operation> operations = event.getOperations();
 				Iterator <Operation>it = operations.iterator();
 				while(it.hasNext()) {
@@ -164,11 +164,11 @@ public class StateMachine {
 					if(operation.getName().equals(Event.SET_STATEMACHINE)) {
 						//how to stop the previous cleanly?
 						try {
-							start(event.getEventId(), operation.getParameterValue(STATEMACHINE_URL));
-							DBUtil.setStateMachine(event.getEventId(), operation.getParameterValue(STATEMACHINE_URL));
+							start(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL));
+							DBUtil.setStateMachine(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL));
 						} catch (StateMachineException e) {
-							if(stateMachineSessions.containsKey(event.getEventId()))
-								logger.log(Level.SEVERE, "Bad state machine " + operation.getParameterValue(STATEMACHINE_URL) + ". Rolling back to previous "+ stateMachineSessions.get(event.getEventId()).getStateMachine());
+							if(stateMachineSessions.containsKey(event.getEventSession()))
+								logger.log(Level.SEVERE, "Bad state machine " + operation.getParameterValue(STATEMACHINE_URL) + ". Rolling back to previous "+ stateMachineSessions.get(event.getEventSession()).getStateMachine());
 							else
 								logger.log(Level.SEVERE, "Bad state machine " + operation.getParameterValue(STATEMACHINE_URL) + ". Need a valid state machine to run!");
 						}						
@@ -178,32 +178,32 @@ public class StateMachine {
 						logger.log(Level.SEVERE, "Unsupported configuration operation: "+operation.getName());
 					}
 				}
-				logger.fine("Done "+event.getEventId()+" "+event.getEventType());
+				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
 			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_GET_STATE)) {
-				logger.info("Got "+event.getEventId()+" "+event.getEventType());
-				if(event.getEventId().equals("ajax"))
-					control.sendEvent(getCurrentState(event.getEventId()), event.getEventEndpoint(), event.getEventType());
+				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
+				if(event.getEventInterface().equals("ajax"))
+					control.sendEvent(getCurrentState(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
 				else
-					CallbackClient.displayEvent(getCurrentState(event.getEventId()), event.getEventEndpoint());
+					CallbackClient.displayEvent(getCurrentState(event.getEventSession()), event.getEventEndpoint());
 				
-				logger.fine("Done "+event.getEventId()+" "+event.getEventType());
+				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
 			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_GET_STATEMACHINE)) {
-				logger.info("Got "+event.getEventId()+" "+event.getEventType());
-				if(event.getEventId().equals("ajax"))
-					control.sendEvent(getCurrentStateMachine(event.getEventId()), event.getEventEndpoint(), event.getEventType());
+				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
+				if(event.getEventInterface().equals("ajax"))
+					control.sendEvent(getCurrentStateMachine(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
 				else
-					CallbackClient.displayEvent(getCurrentStateMachine(event.getEventId()), event.getEventEndpoint());
-				logger.fine("Done "+event.getEventId()+" "+event.getEventType());
+					CallbackClient.displayEvent(getCurrentStateMachine(event.getEventSession()), event.getEventEndpoint());
+				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
 			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_GET_VIRTUALSCREENS)) {
-				logger.info("Got "+event.getEventId()+" "+event.getEventType());
-				if(event.getEventId().equals("ajax"))
-					control.sendEvent(layoutManager.getCurrentVirtualScreens(event.getEventId()), event.getEventEndpoint(), event.getEventType());
+				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
+				if(event.getEventInterface().equals("ajax"))
+					control.sendEvent(layoutManager.getCurrentVirtualScreens(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
 				else
-					CallbackClient.displayEvent(layoutManager.getCurrentVirtualScreens(event.getEventId()), event.getEventEndpoint());
-				logger.fine("Done "+event.getEventId()+" "+event.getEventType());
+					CallbackClient.displayEvent(layoutManager.getCurrentVirtualScreens(event.getEventSession()), event.getEventEndpoint());
+				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
 			} else {
-				logger.severe("Got unknown event type "+event.getEventType());
-				CallbackClient.displayEvent(UNKNOWN_EVENT_TYPE+":"+event.getEventId(), event.getEventEndpoint());
+				logger.severe("Got unknown event type "+event.getEventType() + " via " +event.getEventInterface());
+				CallbackClient.displayEvent(UNKNOWN_EVENT_TYPE+":"+event.getEventSession(), event.getEventEndpoint());
 			}
 		} catch (SecurityException e) {
 			throw new RuntimeException(e);

@@ -20,7 +20,7 @@ public class LayoutEventsHandler {
 			display.initSession(uuid_key, browser, requestIP, method, fullWidth, fullHeight, smSession);
 			// if we have a statemachine request, we need to start one
 			if(statemachine != null && statemachine.length() > 0 && !statemachine.equals("null")) {
-				Event event = new Event(Event.EVENT_CONFIGURE, "", smSession, "");
+				Event event = new Event(Event.EVENT_CONFIGURE, "", "", smSession, "", "");
 				Operation op = event.addOperation(Event.SET_STATEMACHINE);
 				op.addParameter(StateMachine.STATEMACHINE_URL, statemachine);
 				EventQueue.getInstance().add(event);	

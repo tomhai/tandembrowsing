@@ -28,9 +28,10 @@ public class Control {
 		String eventType = (String)eventObj.get("type");
 		String eventName = (String)eventObj.get("name");
 		String id = (String)eventObj.get("id");
+		String session = (String)eventObj.get("session");
 		String endpoint = (String)eventObj.get("endpoint");
 			
-		Event event = new Event(eventType, eventName, id, from);
+		Event event = new Event(eventType, eventName, id, session, "ajax", from);
 		
 		JSONArray operationsObj = (JSONArray)eventObj.get("operation");	
 		if(operationsObj != null) {
@@ -58,7 +59,7 @@ public class Control {
 	
 	public void addFunctionCallAll(final String funcName, final Object... params)
     {       
-        Browser.withPage("/LayoutManager/control.html", new Runnable()
+        Browser.withPage("/tandembrowsing/control.html", new Runnable()
         {
             public void run()
             {            	

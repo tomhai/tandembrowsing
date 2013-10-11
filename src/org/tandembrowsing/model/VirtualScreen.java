@@ -99,10 +99,10 @@ public class VirtualScreen {
 		String browser = virtualscreen.getAttribute("browser");
 		if(browser == null || browser.length() == 0)
 			browser = null;
-		float width = Float.parseFloat(virtualscreen.getAttribute("width"));
-		float height = Float.parseFloat(virtualscreen.getAttribute("height"));
-		float xPosition = Float.parseFloat(virtualscreen.getAttribute("xPosition"));
-		float yPosition = Float.parseFloat(virtualscreen.getAttribute("yPosition"));
+		float width = virtualscreen.getAttribute("width").length() == 0 ? 1 : Float.parseFloat(virtualscreen.getAttribute("width"));
+		float height = virtualscreen.getAttribute("height").length() == 0 ? 1 : Float.parseFloat(virtualscreen.getAttribute("height"));
+		float xPosition = virtualscreen.getAttribute("xPosition").length() == 0 ? 0 :Float.parseFloat(virtualscreen.getAttribute("xPosition"));
+		float yPosition = virtualscreen.getAttribute("yPosition").length() == 0 ? 0 :Float.parseFloat(virtualscreen.getAttribute("yPosition"));
 		int zIndex = virtualscreen.getAttribute("zIndex").length() == 0 ? 0 : Integer.parseInt(virtualscreen.getAttribute("zIndex"));
 		float border = virtualscreen.getAttribute("border").length() == 0 ? 0 : Float.parseFloat(virtualscreen.getAttribute("border"));
 		boolean resizable = virtualscreen.getAttribute("resizable").length() == 0 ? false : Boolean.parseBoolean(virtualscreen.getAttribute("resizable"));

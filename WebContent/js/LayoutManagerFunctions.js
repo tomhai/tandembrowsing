@@ -59,7 +59,6 @@ function setAttribute(attributeName, attributeValue) {
 // the origo is in the upper left corner of the window
 // The border width can be set by passing the sixth argument (a float) 
 function addVirtualScreen(divName, newWidth, newHeight, xPosition, yPosition, zIndex, borderWeight, content) {
-    console.log("addVirtualScreen "+divName);
     var newdiv = document.createElement('div');
     newdiv.setAttribute("id", divName);
     newdiv.setAttribute("style","position:absolute;background-color:transparent;z-index:"+zIndex);
@@ -355,7 +354,6 @@ function setVirtualScreenContentSrc(divName, newContentSrc) {
 
 // public
 function removeVirtualScreen(divName) {
-	console.log("removeVirtualScreen "+divName);
 	var olddiv = document.getElementById(divName);
 	document.body.removeChild(olddiv);
 }

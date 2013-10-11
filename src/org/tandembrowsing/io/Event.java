@@ -43,6 +43,8 @@ public class Event {
 	static final String ATTRIBUTE_NAME = "name";
 	private static final String ATTRIBUTE_TYPE = "type";
 	private static final String ATTRIBUTE_ID = "id";
+	private static final String ATTRIBUTE_SESSION = "session";
+	public static final String ATTRIBUTE_INTERFACE = "interface";
 	private static final String ATTRIBUTE_ENDPOINT = "endpoint";
 	private static final String ELEMENT_EVENT = "event";
 	protected static final String ELEMENT_OPERATION = "operation";
@@ -51,15 +53,17 @@ public class Event {
 	private Element eventElement;
 	private Document eventDocument;
 
-	public Event(String type, String name, String id) {
-		this(type, name, id, "");
+	public Event(String type, String name, String session) {
+		this(type, name, "", session, "soap", "");
 	}
 
-	public Event(String type, String name, String id, String endpoint) {
+	public Event(String type, String name, String id, String session, String clientinterface, String endpoint) {
 		eventElement = new Element (ELEMENT_EVENT);
 		eventElement.setAttribute(ATTRIBUTE_TYPE, type);
 		eventElement.setAttribute(ATTRIBUTE_NAME, name);
 		eventElement.setAttribute(ATTRIBUTE_ID, id);
+		eventElement.setAttribute(ATTRIBUTE_SESSION, session);
+		eventElement.setAttribute(ATTRIBUTE_INTERFACE, clientinterface);
 		eventElement.setAttribute(ATTRIBUTE_ENDPOINT, endpoint);
 		eventDocument = new Document(eventElement);
 	}
@@ -100,6 +104,20 @@ public class Event {
 	public String getEventId() {
 		if(eventDocument.getRootElement().getAttribute(ATTRIBUTE_ID) != null)
 			return eventDocument.getRootElement().getAttribute(ATTRIBUTE_ID).getValue();	
+		else
+			return "";
+	}
+	
+	public String getEventSession() {
+		if(eventDocument.getRootElement().getAttribute(ATTRIBUTE_SESSION) != null)
+			return eventDocument.getRootElement().getAttribute(ATTRIBUTE_SESSION).getValue();	
+		else
+			return "";
+	}
+	
+	public String getEventInterface() {
+		if(eventDocument.getRootElement().getAttribute(ATTRIBUTE_INTERFACE) != null)
+			return eventDocument.getRootElement().getAttribute(ATTRIBUTE_INTERFACE).getValue();	
 		else
 			return "";
 	}
