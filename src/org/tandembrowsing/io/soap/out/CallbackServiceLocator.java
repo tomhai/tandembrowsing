@@ -105,7 +105,7 @@ public class CallbackServiceLocator extends org.apache.axis.client.Service imple
     }
 
     public javax.xml.namespace.QName getServiceName() {
-        return new javax.xml.namespace.QName("http://www.mediateam.oulu.fi/ubicity", "CallbackService");
+        return new javax.xml.namespace.QName("http://www.tandembrowsing.org", "CallbackService");
     }
 
     private java.util.HashSet ports = null;
@@ -113,7 +113,7 @@ public class CallbackServiceLocator extends org.apache.axis.client.Service imple
     public java.util.Iterator getPorts() {
         if (ports == null) {
             ports = new java.util.HashSet();
-            ports.add(new javax.xml.namespace.QName("http://www.mediateam.oulu.fi/ubicity", "Callback"));
+            ports.add(new javax.xml.namespace.QName("http://www.tandembrowsing.org", "Callback"));
         }
         return ports.iterator();
     }

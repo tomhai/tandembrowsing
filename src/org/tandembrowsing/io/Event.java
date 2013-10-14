@@ -24,17 +24,18 @@ import org.jdom.output.XMLOutputter;
  */
 
 public class Event {
-	
+	// top events
 	public static final String EVENT_CHANGE_STATE = "changeState";
 	public static final String EVENT_MODIFY_STATE = "modifyState";
-	public static final String EVENT_GET_STATE = "getState";
-	public static final String EVENT_GET_VIRTUALSCREENS = "getVirtualScreens";
-	public static final String EVENT_CONFIGURE = "configure";
-	public static final String EVENT_GET_STATEMACHINE = "getStateMachine";
+	public static final String EVENT_MANAGE_SESSION = "manageSession";
+	// event functions
+	public static final String GET_STATE = "getState";
+	public static final String GET_VIRTUALSCREENS = "getVirtualScreens";
+	public static final String GET_STATEMACHINE = "getStateMachine";
 	public static final String SET_CONTENT = "setContent";
 	public static final String SET_STATEMACHINE = "setStateMachine";
 	public static final String SET_ATTRIBUTE = "setAttribute";
-	public static final String get_ATTRIBUTE = "getAttribute";
+	public static final String GET_ATTRIBUTE = "getAttribute";
 	public static final String RELOAD = "reload";
 	public static final String RESIZE_AND_MOVE = "resizeAndMove";
 	public static final String MUTE = "mute";

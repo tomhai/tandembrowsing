@@ -155,7 +155,7 @@ public class StateMachine {
 				logger.log(Level.INFO, "Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
 				layoutManager.processOperations(event.getEventSession(), event.getOperations());
 				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
-			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_CONFIGURE)) {
+			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_MANAGE_SESSION)) {
 				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
 				List <Operation> operations = event.getOperations();
 				Iterator <Operation>it = operations.iterator();
@@ -172,34 +172,27 @@ public class StateMachine {
 							else
 								logger.log(Level.SEVERE, "Bad state machine " + operation.getParameterValue(STATEMACHINE_URL) + ". Need a valid state machine to run!");
 						}						
+					} else if(operation.getName().equals(Event.GET_STATEMACHINE)) {
+						if(event.getEventInterface().equals("ajax"))
+							control.sendEvent(getCurrentStateMachine(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
+						else
+							CallbackClient.displayEvent(getCurrentStateMachine(event.getEventSession()), event.getEventEndpoint());
 					} else if(operation.getName().equals(Event.SET_ATTRIBUTE)) {
-						layoutManager.setAttribute(operation);						
+						layoutManager.setAttribute(operation);					
+					} else if(operation.getName().equals(Event.GET_STATE)) {
+						if(event.getEventInterface().equals("ajax"))
+							control.sendEvent(getCurrentState(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
+						else
+							CallbackClient.displayEvent(getCurrentState(event.getEventSession()), event.getEventEndpoint());
+					} else if(operation.getName().equals(Event.GET_VIRTUALSCREENS)) {
+						if(event.getEventInterface().equals("ajax"))
+							control.sendEvent(layoutManager.getCurrentVirtualScreens(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
+						else
+							CallbackClient.displayEvent(layoutManager.getCurrentVirtualScreens(event.getEventSession()), event.getEventEndpoint());
 					} else {
 						logger.log(Level.SEVERE, "Unsupported configuration operation: "+operation.getName());
 					}
 				}
-				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
-			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_GET_STATE)) {
-				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
-				if(event.getEventInterface().equals("ajax"))
-					control.sendEvent(getCurrentState(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
-				else
-					CallbackClient.displayEvent(getCurrentState(event.getEventSession()), event.getEventEndpoint());
-				
-				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
-			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_GET_STATEMACHINE)) {
-				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
-				if(event.getEventInterface().equals("ajax"))
-					control.sendEvent(getCurrentStateMachine(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
-				else
-					CallbackClient.displayEvent(getCurrentStateMachine(event.getEventSession()), event.getEventEndpoint());
-				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
-			} else if(event.getEventType().equalsIgnoreCase(Event.EVENT_GET_VIRTUALSCREENS)) {
-				logger.info("Got "+event.getEventSession()+" "+event.getEventType() + " via " +event.getEventInterface());
-				if(event.getEventInterface().equals("ajax"))
-					control.sendEvent(layoutManager.getCurrentVirtualScreens(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
-				else
-					CallbackClient.displayEvent(layoutManager.getCurrentVirtualScreens(event.getEventSession()), event.getEventEndpoint());
 				logger.fine("Done "+event.getEventSession()+" "+event.getEventType());
 			} else {
 				logger.severe("Got unknown event type "+event.getEventType() + " via " +event.getEventInterface());

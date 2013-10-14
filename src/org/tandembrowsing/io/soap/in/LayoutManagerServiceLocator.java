@@ -105,7 +105,7 @@ public class LayoutManagerServiceLocator extends org.apache.axis.client.Service 
     }
 
     public javax.xml.namespace.QName getServiceName() {
-        return new javax.xml.namespace.QName("http://www.mediateam.oulu.fi/ubicity", "LayoutManagerService");
+        return new javax.xml.namespace.QName("http://www.tandembrowsing.org", "LayoutManagerService");
     }
 
     private java.util.HashSet ports = null;
@@ -113,7 +113,7 @@ public class LayoutManagerServiceLocator extends org.apache.axis.client.Service 
     public java.util.Iterator getPorts() {
         if (ports == null) {
             ports = new java.util.HashSet();
-            ports.add(new javax.xml.namespace.QName("http://www.mediateam.oulu.fi/ubicity", "LayoutManager"));
+            ports.add(new javax.xml.namespace.QName("http://www.tandembrowsing.org", "LayoutManager"));
         }
         return ports.iterator();
     }

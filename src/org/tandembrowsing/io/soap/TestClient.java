@@ -118,7 +118,7 @@ public class TestClient implements IEventThread {
 						}
 					}		
 					logger.info(client.processEvent(event));
-				} else if (args2[0].equalsIgnoreCase(Event.EVENT_CONFIGURE)) { 
+				} else if (args2[0].equalsIgnoreCase(Event.EVENT_MANAGE_SESSION)) { 
 					Event event = new Event(args2[0], "", args2[1]);
 					logger.info(args2[0]+" for "+args2[1]);
 					boolean moreOperations = true;
@@ -127,37 +127,43 @@ public class TestClient implements IEventThread {
 						String inputO = in.readLine();
 						String argsO[] = inputO.split("\\s");
 						if(argsO[0].equalsIgnoreCase(Event.SET_STATEMACHINE)) {
-							Operation setContent = event.addOperation(argsO[0]);
-							setContent.addParameter(StateMachine.STATEMACHINE_URL, argsO[1]);											
-							logger.info(argsO[0]+"("+"url:"+argsO[1]+")");
+							Operation setContent = event.addOperation(argsO[2]);
+							setContent.addParameter(StateMachine.STATEMACHINE_URL, argsO[3]);											
+							logger.info(argsO[0]+"for "+ args2[1]+ "("+"url:"+argsO[1]+")");
+						} else if (argsO[0].equalsIgnoreCase(Event.GET_STATEMACHINE)) { 
+							event.addOperation(argsO[0]);
+							logger.info(argsO[0]+" for " +args2[1]);				
+						} else if (argsO[0].equalsIgnoreCase(Event.GET_STATE)) { 
+							event.addOperation(argsO[0]);
+							logger.info(argsO[0] +" for "+args2[1]);	
+						} else if (argsO[0].equalsIgnoreCase(Event.SET_ATTRIBUTE)) { 
+							Operation setAttribute = event.addOperation(argsO[0]);
+							setAttribute.addParameter("targetKey", argsO[1]);	
+							setAttribute.addParameter("targetValue", argsO[2]);	
+							setAttribute.addParameter("key", argsO[3]);	
+							setAttribute.addParameter("value", argsO[4]);							
+							logger.info(argsO[0] +" for "+args2[1]);					
+						}  else if(argsO[0].equalsIgnoreCase("help")) {
+							System.out.println("\nSupported operations:");
+							System.out.println("  "+Event.SET_STATEMACHINE+" <url>");
+							System.out.println("  "+Event.GET_STATEMACHINE);	
+							System.out.println("  "+Event.GET_STATE);
+							System.out.println("  "+Event.SET_ATTRIBUTE + " <targetKey> <targetValue> <key> <value>");
+							System.out.println("  run\n");
 						} else if(argsO[0].equalsIgnoreCase("run")) {
 							moreOperations = false;
-						} else if(argsO[0].equalsIgnoreCase("help")) {
-							System.out.println("\nSupported operations:");
-							System.out.println("  "+Event.SET_STATEMACHINE+" <url>");							
-							System.out.println("  run\n");
-						}else {
+						} else {
 							logger.info("Wrong syntax!");
 						}
 					}		
 					logger.info(client.processEvent(event));
-				} else if (args2[0].equalsIgnoreCase(Event.EVENT_GET_STATE)) { 
-					Event event = new Event(args2[0], "", args2[1]);
-					logger.info(args2[0] +" for "+args2[1]);	
-					logger.info(client.processEvent(event));					
-				} else if (args2[0].equalsIgnoreCase(Event.EVENT_GET_STATEMACHINE)) { 
-					Event event = new Event(args2[0], "", args2[1]);
-					logger.info(args2[0]+" for " +args2[1]);	
-					logger.info(client.processEvent(event));					
 				} else if (args2[0].equalsIgnoreCase("exit")) {
 					exit = true;
 				} else if (args2[0].equalsIgnoreCase("help")) {
 					System.out.println("\nSupported commands:");
-					System.out.println("  "+Event.EVENT_CHANGE_STATE+" <transition_name>");
-					System.out.println("  "+Event.EVENT_MODIFY_STATE);
-					System.out.println("  "+Event.EVENT_GET_STATE);
-					System.out.println("  "+Event.EVENT_GET_STATEMACHINE);
-					System.out.println("  "+Event.EVENT_CONFIGURE);
+					System.out.println("  "+Event.EVENT_CHANGE_STATE+" <transition_name> <session>");
+					System.out.println("  "+Event.EVENT_MODIFY_STATE+ " <session>");
+					System.out.println("  "+Event.EVENT_MANAGE_SESSION +" <session>");
 					System.out.println("  exit\n");
 				} else {
 					logger.info("Wrong syntax!");

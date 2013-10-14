@@ -25,11 +25,11 @@ public class CallbackSoapBindingStub extends org.apache.axis.client.Stub impleme
         org.apache.axis.description.ParameterDesc param;
         oper = new org.apache.axis.description.OperationDesc();
         oper.setName("displayEvent");
-        param = new org.apache.axis.description.ParameterDesc(new javax.xml.namespace.QName("http://www.mediateam.oulu.fi/ubicity", "eventType"), org.apache.axis.description.ParameterDesc.IN, new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"), java.lang.String.class, false, false);
+        param = new org.apache.axis.description.ParameterDesc(new javax.xml.namespace.QName("http://www.tandembrowsing.org", "eventType"), org.apache.axis.description.ParameterDesc.IN, new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"), java.lang.String.class, false, false);
         oper.addParameter(param);        
         oper.setReturnType(new javax.xml.namespace.QName("http://www.w3.org/2001/XMLSchema", "string"));
         oper.setReturnClass(java.lang.String.class);
-        oper.setReturnQName(new javax.xml.namespace.QName("http://www.mediateam.oulu.fi/ubicity", "eventReturn"));
+        oper.setReturnQName(new javax.xml.namespace.QName("http://www.tandembrowsing.org", "eventReturn"));
         oper.setStyle(org.apache.axis.constants.Style.WRAPPED);
         oper.setUse(org.apache.axis.constants.Use.LITERAL);
         _operations[0] = oper;
@@ -99,7 +99,7 @@ public class CallbackSoapBindingStub extends org.apache.axis.client.Stub impleme
         _call.setProperty(org.apache.axis.client.Call.SEND_TYPE_ATTR, Boolean.FALSE);
         _call.setProperty(org.apache.axis.AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE);
         _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP11_CONSTANTS);
-        _call.setOperationName(new javax.xml.namespace.QName("http://www.mediateam.oulu.fi/ubicity", "displayEvent"));
+        _call.setOperationName(new javax.xml.namespace.QName("http://www.tandembrowsing.org", "displayEvent"));
 
         setRequestHeaders(_call);
         setAttachments(_call);
