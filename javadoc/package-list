@@ -1,0 +1,9 @@
+org.tandembrowsing.io
+org.tandembrowsing.io.ajax
+org.tandembrowsing.io.db
+org.tandembrowsing.io.soap
+org.tandembrowsing.io.soap.in
+org.tandembrowsing.io.soap.out
+org.tandembrowsing.model
+org.tandembrowsing.state
+org.tandembrowsing.ui
