@@ -51,6 +51,7 @@ public class Event {
 	protected static final String ELEMENT_OPERATION = "operation";
 	protected static final String ELEMENT_PARAMETER = "parameter";
 	
+	
 	private Element eventElement;
 	private Document eventDocument;
 

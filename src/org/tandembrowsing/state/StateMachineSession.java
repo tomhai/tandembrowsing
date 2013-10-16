@@ -30,20 +30,22 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private String stateMachine;
 	private SCXMLExecutor executor;
 	private String recoveryState;
+	private boolean persistent = false;
 
 	private static LayoutManager layoutManager;
 	private static Logger logger = Logger.getLogger("org.tandembrowsing");
 	private Map <String, List<Operation>> overrideOperations = new HashMap<String, List<Operation>>();
 	
-	public StateMachineSession (String smSession, String stateMachine) {
+	public StateMachineSession (String smSession, String stateMachine, boolean persistent) {
 		layoutManager = LayoutManager.getInstance();
 		layoutManager.addLayoutSession(smSession);
 		this.setSmSession(smSession);	
 		this.setStateMachine(stateMachine);
+		this.setPersistent(persistent);
 	}
 	
-	public StateMachineSession (String smSession, String stateMachine, String recoveryState) {
-		this(smSession, stateMachine);
+	public StateMachineSession (String smSession, String stateMachine, boolean persistent, String recoveryState) {
+		this(smSession, stateMachine, persistent);
 		this.setRecoveryState(recoveryState);
 	}
 			
@@ -218,5 +220,13 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 
 	public void setRecoveryState(String recoveryState) {
 		this.recoveryState = recoveryState;
+	}
+
+	public boolean isPersistent() {
+		return persistent;
+	}
+
+	public void setPersistent(boolean persistent) {
+		this.persistent = persistent;
 	}
 }

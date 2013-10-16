@@ -46,7 +46,7 @@ Built on Apr 22, 2006 (06:55:48 PDT)-->
    </wsdl:binding>
    <wsdl:service name="LayoutManagerService">
       <wsdl:port binding="impl:LayoutManagerSoapBinding" name="LayoutManager">
-         <wsdlsoap:address location="http://localhost:8080/LayoutManager/services/LayoutManager"/>
+         <wsdlsoap:address location="http://localhost:8080/tandembrowsing/services/LayoutManager"/>
       </wsdl:port>
    </wsdl:service>
 </wsdl:definitions>

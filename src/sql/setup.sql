@@ -30,5 +30,6 @@ CREATE TABLE `statemachines` (
   `session` varchar(767) NOT NULL,
   `url` varchar(1023) NOT NULL,
   `state` varchar(255) default NULL,
+  `persistent` boolean NOT NULL,
   PRIMARY KEY (`session`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

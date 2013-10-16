@@ -55,6 +55,7 @@ public class StateMachine {
 	private static final String UNKNOWN_EVENT_TYPE = "ERROR:event type unknown";
 	
 	public static final String STATEMACHINE_URL = "resource";
+	public static final String PERSISTENT = "persistent";
 	
 	private static LayoutManager layoutManager;
 	
@@ -71,7 +72,7 @@ public class StateMachine {
 
 	}
 	
-	private void start(String smSession, String scxmlURL) throws StateMachineException {
+	private void start(String smSession, String scxmlURL, boolean persistent) throws StateMachineException {
         try {
 			logger.info("parse " +scxmlURL);
 			SCXML scxml = SCXMLParser.parse(new URL(scxmlURL), new SimpleErrorHandler());     
@@ -80,9 +81,10 @@ public class StateMachine {
 			if(stateMachineSessions.containsKey(smSession)) {
 				session = stateMachineSessions.get(smSession);
 				session.setStateMachine(scxmlURL);
-			} else
-				session = new StateMachineSession(smSession, scxmlURL);
-			
+			} else {
+				session = new StateMachineSession(smSession, scxmlURL, persistent);
+			}
+				
 			Evaluator engine = new ELEvaluator();
 	        EventDispatcher ed = new SCXMLEventDispatcher();
 	        SCXMLExecutor newexec = new SCXMLExecutor(engine, ed, session);
@@ -94,7 +96,7 @@ public class StateMachine {
 			//this will kill the previous state machine if exist for the same smSession
 			stateMachineSessions.put(smSession, session);
 			logger.info("Statemachines running " +stateMachineSessions.size());
-		    DBUtil.setStateMachine(smSession, scxmlURL);
+		    DBUtil.setStateMachine(smSession, scxmlURL, persistent);
         } catch (ModelException e) {
 			throw new StateMachineException(e);
 		} catch (IOException e) {
@@ -164,8 +166,12 @@ public class StateMachine {
 					if(operation.getName().equals(Event.SET_STATEMACHINE)) {
 						//how to stop the previous cleanly?
 						try {
-							start(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL));
-							DBUtil.setStateMachine(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL));
+							String persistent = operation.getParameterValue(PERSISTENT);
+							boolean persistentBool = false;
+							if(persistent != null && persistent.equals("true"))
+								persistentBool = true;
+							start(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL), persistentBool);
+							DBUtil.setStateMachine(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL), persistentBool);
 						} catch (StateMachineException e) {
 							if(stateMachineSessions.containsKey(event.getEventSession()))
 								logger.log(Level.SEVERE, "Bad state machine " + operation.getParameterValue(STATEMACHINE_URL) + ". Rolling back to previous "+ stateMachineSessions.get(event.getEventSession()).getStateMachine());
@@ -208,10 +214,13 @@ public class StateMachine {
 	}
 
 	public void clearSession(String smSession) {
-		stateMachineSessions.remove(smSession);
-		DBUtil.removeSession(smSession);
-		logger.info("Statemachines running " +stateMachineSessions.size());
-		layoutManager.clearSession(smSession);
+		if(stateMachineSessions.containsKey(smSession) 
+				&& !stateMachineSessions.get(smSession).isPersistent()) {
+			stateMachineSessions.remove(smSession);
+			DBUtil.removeSession(smSession);
+			logger.info("Statemachines running " +stateMachineSessions.size());
+			layoutManager.clearSession(smSession);
+		}
 	}
 
 	public void recoverSession(String smSession) {

@@ -28,8 +28,8 @@ public class DBUtil {
 	private static final String DELETE_STATEMACHINES = "delete from statemachines where session = ?";
 	private static final String LOAD_VIRTUALSCREENS = "select id, resource, browser, width, height, xPosition, yPosition, zIndex, border, resizable from virtualscreens where session = ? order by insertion_order";
 	private static final String READ_STATE = "select state from statemachines where session = ?";	
-	private static final String GET_STATEMACHINES = "select session, url, state from statemachines";
-	private static final String SET_STATEMACHINE = "INSERT INTO statemachines (session, url) VALUES (?,?) ON DUPLICATE KEY UPDATE url=?;";
+	private static final String GET_STATEMACHINES = "select session, url, state, persistent from statemachines";
+	private static final String SET_STATEMACHINE = "INSERT INTO statemachines (session, url, persistent) VALUES (?,?,?) ON DUPLICATE KEY UPDATE url=?;";
 	private static final String SET_STATE = "update statemachines set state = ? where session = ?";
 	private static final String INSERT_LOG = "insert into log (message, timecol) values (?, ?)";
 	private static final String GET_SESSIONS = "select session from statemachines";
@@ -236,7 +236,7 @@ public class DBUtil {
 
 
 
-	public static void setStateMachine(String smSession, String url) {
+	public static void setStateMachine(String smSession, String url, boolean persistent) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
@@ -244,7 +244,8 @@ public class DBUtil {
 			pstmt = conn.prepareStatement(SET_STATEMACHINE);
 			pstmt.setString(1, smSession);
         	pstmt.setString(2, url);
-        	pstmt.setString(3, url);
+        	pstmt.setBoolean(3, persistent);
+        	pstmt.setString(4, url);
         	pstmt.executeUpdate();   
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Storing statemachine into db failed.", e);
@@ -264,7 +265,7 @@ public class DBUtil {
 			stmt = conn.createStatement();
 			ResultSet rset = stmt.executeQuery(GET_STATEMACHINES);
 			while(rset.next()) {
-				StateMachineSession session = new StateMachineSession(rset.getString(1), rset.getString(2), rset.getString(3));
+				StateMachineSession session = new StateMachineSession(rset.getString(1), rset.getString(2), rset.getBoolean(3), rset.getString(4));
 				sessions.put(rset.getString(1), session);
 			}
 		} catch (SQLException e) {
