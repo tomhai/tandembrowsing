@@ -26,7 +26,6 @@ public class LayoutManager {
 
 	private Map <String, MultipartPage> layouts = new HashMap<String, MultipartPage>(); 
 	private static LayoutManagerView view;
-	private static String LM_HOST = "LM_HOST";
 	private String hostName = System.getenv("HOSTNAME");
 		
 	private LayoutManager() {
@@ -53,7 +52,7 @@ public class LayoutManager {
 	 */
 	public void addVirtualScreen(String smSession, VirtualScreen virtualscreen) throws LayoutException {	
 		try {
-			virtualscreen.setResource(transformURL(virtualscreen.getResource()));
+			virtualscreen.setResource(virtualscreen.getResource());
 			logger.log(Level.INFO, "addVirtualScreen " +virtualscreen.toString());
 			view.addVirtualScreen(smSession, virtualscreen);
 		} catch (LayoutException e) {
@@ -100,7 +99,7 @@ public class LayoutManager {
 	 */
 	public void setContent(String smSession, VirtualScreen virtualscreen) throws LayoutException {
 		try {
-			virtualscreen.setResource(transformURL(virtualscreen.getResource()));
+			virtualscreen.setResource(virtualscreen.getResource());
 			logger.log(Level.INFO, "setContent " +virtualscreen.toString());
 			view.setContent(smSession, virtualscreen);
 		} catch (LayoutException e) {
@@ -151,7 +150,7 @@ public class LayoutManager {
 			VirtualScreen [] virtualscreens = layouts.get(smSession).getBrowserVirtualScreens(browser);
 			for(VirtualScreen virtualscreen : virtualscreens) {
 				try {			
-					virtualscreen.setResource(transformURL(virtualscreen.getResource()));
+					virtualscreen.setResource(virtualscreen.getResource());
 					view.initLayout(smSession, virtualscreen);
 				} catch (LayoutException e) {
 					//TODO: inform StateMachine!!!
@@ -241,7 +240,7 @@ public class LayoutManager {
 			VirtualScreen modifiedVirtualScreen = layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID));
 			if(modifiedVirtualScreen == null)
 				throw new LayoutException("VirtualScreen "+operation.getParameterValue(VirtualScreen.ID)+" does not exits. setContent " + operation.getParameterValue(VirtualScreen.RESOURCE) + " ignored.");
-			modifiedVirtualScreen.setResource(transformURL(parseResource(operation.getParameterValue(VirtualScreen.RESOURCE), modifiedVirtualScreen.getResource())));
+			modifiedVirtualScreen.setResource(parseResource(operation.getParameterValue(VirtualScreen.RESOURCE), modifiedVirtualScreen.getResource()));
 			setContent(smSession, modifiedVirtualScreen);
 		} else if (operation.getName().equals("reload")) {
 			reload(smSession, layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID)));
@@ -290,20 +289,6 @@ public class LayoutManager {
 		} else
 			return newResource;
 	}
-
-	public String transformURL(String url) {
-		if(url.indexOf(LM_HOST) == -1)
-			return url; 
-		
-		if(hostName == null || hostName.length() == 0) {
-			logger.info("Hostname is not set! \n\tIf using virtual machine, set hostname by executing command: \n\t\thostname vm.<instance_id>.ubioulu.fi \n\tand restart tomcat by executing command: \n\t\tservice tomcat5 restart\n\tNow using localhost.");
-			return url.replaceFirst(LM_HOST, "localhost");
-		} else {	
-			return url.replaceFirst(LM_HOST, hostName);
-		}
-	}
-	
-
 
 	public String getCurrentVirtualScreens(String smSession) {
 		return layouts.get(smSession).getVirtualScreensJSON();
