@@ -29,6 +29,7 @@ var uuid_key = '<%= java.util.UUID.randomUUID().toString()%>';
 var uuid_key2 = '<%= request.getParameter("uuid_key")%>';
 if(uuid_key2 != 'null' && uuid_key2.length != 0)
 	uuid_key = uuid_key2;
+var proxyhost = document.location.host;
 </script>
 <script type='text/javascript' src='dwr/engine.js'> </script>
 <script type='text/javascript' src='dwr/interface/LayoutEventsHandler.js'> </script>

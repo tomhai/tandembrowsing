@@ -1,14 +1,12 @@
 package org.tandembrowsing.state;
 
-import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,7 +22,6 @@ import org.apache.commons.scxml.model.ModelException;
 import org.apache.commons.scxml.model.SCXML;
 import org.apache.commons.scxml.model.State;
 import org.apache.commons.scxml.model.TransitionTarget;
-import org.xml.sax.SAXException;
 
 import org.tandembrowsing.io.Event;
 import org.tandembrowsing.io.Operation;
@@ -60,50 +57,55 @@ public class StateMachine {
 	private static LayoutManager layoutManager;
 	
 	private Map <String, StateMachineSession> stateMachineSessions = new HashMap <String, StateMachineSession>();
+	public List <StateMachineSession> recoverySessions = new ArrayList<StateMachineSession>();
 	private Control control = null;
-	private Map <String, StateMachineSession> recoverySessions = new HashMap<String, StateMachineSession>();	
 	
 	private StateMachine() {
 		layoutManager = LayoutManager.getInstance();
 		control = new Control();
 		DBUtil.getStateMachines(recoverySessions);
-		logger.info("Recoverable sessions in db " +recoverySessions.size());
-		new RecoveryCleaner(300);
-
+		for (StateMachineSession item : recoverySessions) {
+			stateMachineSessions.put(item.getSmSession(), item);
+			start(item);
+		}
+		logger.info("Recoverable sessions in db " +stateMachineSessions.size());
+		DBUtil.removeNonPersistentSessions();
 	}
 	
-	private void start(String smSession, String scxmlURL, boolean persistent) throws StateMachineException {
-        try {
-			logger.info("parse " +scxmlURL);
-			SCXML scxml = SCXMLParser.parse(new URL(scxmlURL), new SimpleErrorHandler());     
-
-			StateMachineSession session = null;
-			if(stateMachineSessions.containsKey(smSession)) {
-				session = stateMachineSessions.get(smSession);
-				session.setStateMachine(scxmlURL);
-			} else {
-				session = new StateMachineSession(smSession, scxmlURL, persistent);
-			}
-				
-			Evaluator engine = new ELEvaluator();
+	public void start(StateMachineSession recoverState) {
+		try {
+			logger.info("parse " +recoverState.getStateMachine());
+	        SCXML scxml = SCXMLParser.parse(new URL(recoverState.getStateMachine()), new SimpleErrorHandler());
+	        
+	        TransitionTarget target = null;
+	        if(recoverState.hasRecoveryState())
+	        	target = SCXMLUtil.hasState(scxml, recoverState.getRecoveryState());
+	        
+	        if(target != null) {
+	        	logger.info("Recover from " + recoverState.getRecoveryState());
+	        	scxml.setInitialTarget(target);  
+	        }	
+        	
+	        Evaluator engine = new ELEvaluator();
 	        EventDispatcher ed = new SCXMLEventDispatcher();
-	        SCXMLExecutor newexec = new SCXMLExecutor(engine, ed, session);
+	        SCXMLExecutor newexec = new SCXMLExecutor(engine, ed, recoverState);
 	        newexec.setStateMachine(scxml);
-	        newexec.addListener(scxml, session);
-	        newexec.setRootContext(new ELContext());            
+	        newexec.addListener(scxml, recoverState);
+	        newexec.setRootContext(new ELContext());
+	        // if reached here, then store it to db 
+	        DBUtil.setStateMachine(recoverState);
 			newexec.go();
-			session.setExecutor(newexec);
 			//this will kill the previous state machine if exist for the same smSession
-			stateMachineSessions.put(smSession, session);
+			recoverState.setExecutor(newexec);
 			logger.info("Statemachines running " +stateMachineSessions.size());
-		    DBUtil.setStateMachine(smSession, scxmlURL, persistent);
-        } catch (ModelException e) {
-			throw new StateMachineException(e);
-		} catch (IOException e) {
-			throw new StateMachineException(e);
-		} catch (SAXException e) {
-			throw new StateMachineException(e);
-		} 
+		} catch (Exception e) {
+			if(recoverState.hasPreviousStatemachine()) {
+				logger.log(Level.SEVERE, "Bad state machine " + recoverState.getStateMachine() + ". Rolling back to previous "+ recoverState.getPreviousStateMachine());
+				recoverState.setStateMachine(recoverState.getPreviousStateMachine());
+			} else
+				logger.log(Level.SEVERE, "Bad state machine " + recoverState.getStateMachine()  + ". Need a valid state machine to run!");
+
+		}
 	}
 			
 	@SuppressWarnings("unchecked")
@@ -165,19 +167,21 @@ public class StateMachine {
 					Operation operation = it.next();
 					if(operation.getName().equals(Event.SET_STATEMACHINE)) {
 						//how to stop the previous cleanly?
-						try {
-							String persistent = operation.getParameterValue(PERSISTENT);
-							boolean persistentBool = false;
-							if(persistent != null && persistent.equals("true"))
-								persistentBool = true;
-							start(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL), persistentBool);
-							DBUtil.setStateMachine(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL), persistentBool);
-						} catch (StateMachineException e) {
-							if(stateMachineSessions.containsKey(event.getEventSession()))
-								logger.log(Level.SEVERE, "Bad state machine " + operation.getParameterValue(STATEMACHINE_URL) + ". Rolling back to previous "+ stateMachineSessions.get(event.getEventSession()).getStateMachine());
-							else
-								logger.log(Level.SEVERE, "Bad state machine " + operation.getParameterValue(STATEMACHINE_URL) + ". Need a valid state machine to run!");
-						}						
+						String persistent = operation.getParameterValue(PERSISTENT);
+						boolean persistentBool = false;
+						if(persistent != null && persistent.equals("true"))
+							persistentBool = true;
+						
+						StateMachineSession session = null;
+						if(stateMachineSessions.containsKey(event.getEventSession())) {
+							session = stateMachineSessions.get(event.getEventSession());
+							session.setStateMachine(operation.getParameterValue(STATEMACHINE_URL));
+							session.setPersistent(persistentBool);
+						} else {
+							session = new StateMachineSession(event.getEventSession(), operation.getParameterValue(STATEMACHINE_URL), persistentBool);
+							stateMachineSessions.put(session.getSmSession(), session);
+						}		
+						start(session);				
 					} else if(operation.getName().equals(Event.GET_STATEMACHINE)) {
 						if(event.getEventInterface().equals("ajax"))
 							control.sendEvent(getCurrentStateMachine(event.getEventSession()), event.getEventEndpoint(), event.getEventType());
@@ -221,55 +225,6 @@ public class StateMachine {
 			logger.info("Statemachines running " +stateMachineSessions.size());
 			layoutManager.clearSession(smSession);
 		}
-	}
-
-	public void recoverSession(String smSession) {
-		if(recoverySessions.containsKey(smSession)) {
-			// lets start from the previous step if possible	        
-	        StateMachineSession recoverState = recoverySessions.remove(smSession);
-			try {
-		        SCXML scxml = SCXMLParser.parse(new URL(recoverState.getStateMachine()), new SimpleErrorHandler());
-		        TransitionTarget target = SCXMLUtil.hasState(scxml, recoverState.getRecoveryState());
-		        
-		        if(target != null) {
-		        	logger.info("Recover from " + recoverState.getRecoveryState());
-		        	scxml.setInitialTarget(target);  
-		        	
-		        	Evaluator engine = new ELEvaluator();
-			        EventDispatcher ed = new SCXMLEventDispatcher();
-			        SCXMLExecutor newexec = new SCXMLExecutor(engine, ed, recoverState);
-			        newexec.setStateMachine(scxml);
-			        newexec.addListener(scxml, recoverState);
-			        newexec.setRootContext(new ELContext());            
-					newexec.go();
-					recoverState.setExecutor(newexec);
-					//this will kill the previous state machine if exist for the same smSession
-					stateMachineSessions.put(recoverState.getSmSession(), recoverState);
-					logger.info("Statemachines running " +stateMachineSessions.size());
-		        }	         
-			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Recover failed for "+smSession);
-			}
-		}
-	}
-	
-	public class RecoveryCleaner {
-	    Timer timer;
-
-	    public RecoveryCleaner(int seconds) {
-	        timer = new Timer();
-	        timer.schedule(new RecoveryCleanerTask(), seconds*1000);
-		}
-
-	    class RecoveryCleanerTask extends TimerTask {
-	        public void run() {
-	        	for (String smSession : recoverySessions.keySet()) {
-	        	    DBUtil.removeSession(smSession);
-	        	}
-	        	recoverySessions.clear();
-	            timer.cancel(); //Terminate the timer thread
-	        }
-	    }
 	}
 }
 

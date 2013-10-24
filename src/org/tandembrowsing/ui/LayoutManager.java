@@ -157,9 +157,7 @@ public class LayoutManager {
 					logger.log(Level.SEVERE, "No response from view for virtualscreen "+virtualscreen.getId()+","+virtualscreen.getResource(), e);
 				}	
 			}
-		} else {
-			StateMachine.getInstance().recoverSession(smSession);
-		}
+		} 
 		view.openSession();
 	}
 	

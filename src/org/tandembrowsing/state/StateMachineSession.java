@@ -28,8 +28,9 @@ import org.tandembrowsing.ui.LayoutManager;
 public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private String smSession;
 	private String stateMachine;
+	private String previousStateMachine = null;
 	private SCXMLExecutor executor;
-	private String recoveryState;
+	private String recoveryState = null;
 	private boolean persistent = false;
 
 	private static LayoutManager layoutManager;
@@ -149,7 +150,7 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 		if(recoveryState != null) {
 			recoveryState = null;
 		} else {
-			DBUtil.setState(smSession, state.getId());
+			DBUtil.setState(this.smSession, state.getId());
 			try {
 				List <Operation> overrideList = getOverrideOperation(state);
 				if( state.getDatamodel() != null) {
@@ -202,6 +203,7 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	}
 
 	public void setStateMachine(String stateMachine) {
+		this.setPreviousStateMachine(this.stateMachine);
 		this.stateMachine = stateMachine;
 		layoutManager.setStateMachine(smSession, stateMachine);
 	}
@@ -221,6 +223,10 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	public void setRecoveryState(String recoveryState) {
 		this.recoveryState = recoveryState;
 	}
+	
+	public boolean hasRecoveryState() {
+		return recoveryState != null;
+	}
 
 	public boolean isPersistent() {
 		return persistent;
@@ -228,5 +234,17 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 
 	public void setPersistent(boolean persistent) {
 		this.persistent = persistent;
+	}
+
+	public String getPreviousStateMachine() {
+		return previousStateMachine;
+	}
+
+	public void setPreviousStateMachine(String previousStateMachine) {
+		this.previousStateMachine = previousStateMachine;
+	}
+
+	public boolean hasPreviousStatemachine() {
+		return this.previousStateMachine != null;
 	}
 }

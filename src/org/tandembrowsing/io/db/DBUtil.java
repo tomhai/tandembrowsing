@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -26,9 +26,10 @@ public class DBUtil {
 	private static final String UPDATE_VIRTUALSCREEN = "update virtualscreens set resource = ?, browser = ?, width = ?, height = ?, xPosition = ?, yPosition = ?, zIndex = ?, border = ?, resizable = ? where session = ? and id = ?";
 	private static final String DELETE_VIRTUALSCREENS = "delete from virtualscreens where session = ?";
 	private static final String DELETE_STATEMACHINES = "delete from statemachines where session = ?";
+	private static final String DELETE_STATEMACHINES_NOPERSISTENT = "delete from statemachines where persistent = 0";
 	private static final String LOAD_VIRTUALSCREENS = "select id, resource, browser, width, height, xPosition, yPosition, zIndex, border, resizable from virtualscreens where session = ? order by insertion_order";
 	private static final String READ_STATE = "select state from statemachines where session = ?";	
-	private static final String GET_STATEMACHINES = "select session, url, state, persistent from statemachines";
+	private static final String GET_STATEMACHINES = "select session, url, state, persistent where persistent = 1";
 	private static final String SET_STATEMACHINE = "INSERT INTO statemachines (session, url, persistent) VALUES (?,?,?) ON DUPLICATE KEY UPDATE url=?;";
 	private static final String SET_STATE = "update statemachines set state = ? where session = ?";
 	private static final String INSERT_LOG = "insert into log (message, timecol) values (?, ?)";
@@ -236,16 +237,16 @@ public class DBUtil {
 
 
 
-	public static void setStateMachine(String smSession, String url, boolean persistent) {
+	public static void setStateMachine(StateMachineSession session) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		try {
 			conn = getConnection();
 			pstmt = conn.prepareStatement(SET_STATEMACHINE);
-			pstmt.setString(1, smSession);
-        	pstmt.setString(2, url);
-        	pstmt.setBoolean(3, persistent);
-        	pstmt.setString(4, url);
+			pstmt.setString(1, session.getSmSession());
+        	pstmt.setString(2, session.getStateMachine());
+        	pstmt.setBoolean(3, session.isPersistent());
+        	pstmt.setString(4, session.getStateMachine());
         	pstmt.executeUpdate();   
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Storing statemachine into db failed.", e);
@@ -257,7 +258,7 @@ public class DBUtil {
 		}
 	}
 	
-	public static void getStateMachines(Map <String, StateMachineSession> sessions) {
+	public static void getStateMachines(List <StateMachineSession> sessions) {
 		Connection conn = null;
 		Statement stmt = null;
 		try {
@@ -266,7 +267,7 @@ public class DBUtil {
 			ResultSet rset = stmt.executeQuery(GET_STATEMACHINES);
 			while(rset.next()) {
 				StateMachineSession session = new StateMachineSession(rset.getString(1), rset.getString(2), rset.getBoolean(3), rset.getString(4));
-				sessions.put(rset.getString(1), session);
+				sessions.add(session);
 			}
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Fetching statemachine from db failed.", e);
@@ -294,8 +295,25 @@ public class DBUtil {
 			closePreparedStatement(pstmt);
 			closeConnection(conn);
 		}
-		removeVirtualScreens(smSession);
 	}
+	
+	public static void removeNonPersistentSessions() {
+		Connection conn = null;
+		Statement stmt = null;
+		try {
+			conn = getConnection();
+			stmt = conn.createStatement();
+			stmt.executeUpdate(DELETE_STATEMACHINES_NOPERSISTENT);	
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE, "Fetching state from db failed.", e);
+		} catch (NamingException e) {
+			logger.log(Level.SEVERE, "Fetching state from db failed.", e);
+		} finally {
+			closeStatement(stmt);
+			closeConnection(conn);
+		}
+	}
+
 
 	public static void getRecoverySessions(Set<String> recoverySessions) {
 		Connection conn = null;

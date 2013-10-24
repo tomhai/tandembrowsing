@@ -28,7 +28,7 @@ function createIframeName(divName) {
     return divName + '_iframe';
 }
 
-var appendurl = '&browser='+browser;
+var appendurl = '&browser='+browser+'&proxyhost='+proxyhost;
 function setAttribute(attributeName, attributeValue) {
 	if(attributeName == 'browser')
 		browser = attributeValue;
