@@ -29,7 +29,7 @@ public class DBUtil {
 	private static final String DELETE_STATEMACHINES_NOPERSISTENT = "delete from statemachines where persistent = 0";
 	private static final String LOAD_VIRTUALSCREENS = "select id, resource, browser, width, height, xPosition, yPosition, zIndex, border, resizable from virtualscreens where session = ? order by insertion_order";
 	private static final String READ_STATE = "select state from statemachines where session = ?";	
-	private static final String GET_STATEMACHINES = "select session, url, state, persistent where persistent = 1";
+	private static final String GET_STATEMACHINES = "select session, url, persistent, state from statemachines where persistent = 1";
 	private static final String SET_STATEMACHINE = "INSERT INTO statemachines (session, url, persistent) VALUES (?,?,?) ON DUPLICATE KEY UPDATE url=?;";
 	private static final String SET_STATE = "update statemachines set state = ? where session = ?";
 	private static final String INSERT_LOG = "insert into log (message, timecol) values (?, ?)";

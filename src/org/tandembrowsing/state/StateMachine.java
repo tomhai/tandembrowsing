@@ -57,7 +57,7 @@ public class StateMachine {
 	private static LayoutManager layoutManager;
 	
 	private Map <String, StateMachineSession> stateMachineSessions = new HashMap <String, StateMachineSession>();
-	public List <StateMachineSession> recoverySessions = new ArrayList<StateMachineSession>();
+	private List <StateMachineSession> recoverySessions = new ArrayList<StateMachineSession>();
 	private Control control = null;
 	
 	private StateMachine() {
@@ -225,6 +225,10 @@ public class StateMachine {
 			logger.info("Statemachines running " +stateMachineSessions.size());
 			layoutManager.clearSession(smSession);
 		}
+	}
+	
+	public boolean containSession (String smSession) {
+		return stateMachineSessions.containsKey(smSession);
 	}
 }
 

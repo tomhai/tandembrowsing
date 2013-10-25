@@ -20,7 +20,6 @@ import org.directwebremoting.ServerContextFactory;
 import org.directwebremoting.WebContextFactory;
 import org.directwebremoting.extend.ScriptSessionManager;
 
-import org.tandembrowsing.io.soap.CallbackClient;
 import org.tandembrowsing.model.VirtualScreen;
 import org.tandembrowsing.state.StateMachine;
 
@@ -36,7 +35,6 @@ public class LayoutManagerView {
 	private static final String UUID_KEY = "uuid_key";
 	private static final String SESSION = "session";
 	private static final String STATUS_KEY = "status";
-	private static final String TOUCH = "touch"; 
 	
 	protected Set <String> callbackQueue;
 	
@@ -75,26 +73,17 @@ public class LayoutManagerView {
 	 * @param embeddedTag
 	 */
 	public void addVirtualScreen(String smSession, VirtualScreen newVirtualScreen) throws LayoutException {
-		if(!newVirtualScreen.getId().startsWith("EMPTY")) {	
-			BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
-			filter.add(BROWSER_KEY, new Check(newVirtualScreen.getBrowser(), false));
-			filter.add(SESSION, new Check(smSession, false));
-			addFunctionCall(filter, "addVirtualScreen", newVirtualScreen.getId(), newVirtualScreen.getWidth(), newVirtualScreen.getHeight(), newVirtualScreen.getXPosition(), newVirtualScreen.getYPosition(), newVirtualScreen.getZIndex(), newVirtualScreen.getBorder(), newVirtualScreen.getResource());
-			
-			/*BrowserScriptSessionFilter exclusiveFilter = new BrowserScriptSessionFilter();
-			exclusiveFilter.add(BROWSER_KEY, new Check(newVirtualScreen.getBrowser(), true));
-			exclusiveFilter.add(SESSION, new Check(smSession, false));
-			addFunctionCall(exclusiveFilter, "addVirtualScreen", newVirtualScreen.getId(), 0, 0, 0, 0, 0, 0, LayoutManagerView.CONTEXTROOT+"stub.html");*/
-		}
+		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
+		filter.add(BROWSER_KEY, new Check(newVirtualScreen.getBrowser(), false));
+		filter.add(SESSION, new Check(smSession, false));
+		addFunctionCall(filter, "addVirtualScreen", newVirtualScreen.getId(), newVirtualScreen.getWidth(), newVirtualScreen.getHeight(), newVirtualScreen.getXPosition(), newVirtualScreen.getYPosition(), newVirtualScreen.getZIndex(), newVirtualScreen.getBorder(), newVirtualScreen.getResource());
 	}
 	
 	public void initLayout(String smSession, VirtualScreen newVirtualScreen) throws LayoutException {
-		if(!newVirtualScreen.getId().startsWith("EMPTY")) {	
-			BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
-			filter.add(STATUS_KEY, new Check("initSession", false));
-			filter.add(SESSION, new Check(smSession, false));
-			addFunctionCall(filter, "addVirtualScreen", newVirtualScreen.getId(), newVirtualScreen.getWidth(), newVirtualScreen.getHeight(), newVirtualScreen.getXPosition(), newVirtualScreen.getYPosition(), newVirtualScreen.getZIndex(), newVirtualScreen.getBorder(), newVirtualScreen.getResource());
-		}		
+		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
+		filter.add(STATUS_KEY, new Check("initSession", false));
+		filter.add(SESSION, new Check(smSession, false));
+		addFunctionCall(filter, "addVirtualScreen", newVirtualScreen.getId(), newVirtualScreen.getWidth(), newVirtualScreen.getHeight(), newVirtualScreen.getXPosition(), newVirtualScreen.getYPosition(), newVirtualScreen.getZIndex(), newVirtualScreen.getBorder(), newVirtualScreen.getResource());
 	}
 	
 	/**
@@ -116,6 +105,7 @@ public class LayoutManagerView {
 	 */
 	public void setContent(String smSession, VirtualScreen modifiedVirtualScreen) throws LayoutException {
 		BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
+		filter.add(BROWSER_KEY, new Check(modifiedVirtualScreen.getBrowser(), false));
 		filter.add(SESSION, new Check(smSession, false));
 		addFunctionCall(filter, "setVirtualScreenContentSrc", modifiedVirtualScreen.getId(), modifiedVirtualScreen.getResource());
 	}
@@ -142,6 +132,17 @@ public class LayoutManagerView {
 		if(smSession != null)
 			scriptSession.setAttribute(SESSION, smSession);
 		scriptSession.setAttribute(STATUS_KEY, "initSession");
+		
+		sessionTimers.put(uuid_key, System.currentTimeMillis());
+		sessionkey.put(uuid_key, smSession);
+	}
+	
+	public synchronized void recoverSession(String uuid_key, String browser, String smSession) {
+		ScriptSession scriptSession = WebContextFactory.get().getScriptSession();
+		scriptSession.setAttribute(BROWSER_KEY, browser);
+		scriptSession.setAttribute(UUID_KEY, uuid_key);
+		scriptSession.setAttribute(SESSION, smSession);
+		scriptSession.setAttribute(STATUS_KEY, "sessionOpen");
 		
 		sessionTimers.put(uuid_key, System.currentTimeMillis());
 		sessionkey.put(uuid_key, smSession);
@@ -268,18 +269,33 @@ public class LayoutManagerView {
         });
     }
 	
-	public void keepAlive(String uuid_key, String browser) {
+	public void keepAlive(String uuid_key, String smSession, String browser) {
 		if(sessionTimers.get(uuid_key) != null) {
 			BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
 			filter.add(UUID_KEY, new Check(uuid_key, false));
 			if((System.currentTimeMillis() - sessionTimers.get(uuid_key)) > 60000) {
-				addFunctionCall(filter, "keepAliveResponse", false);
+				addFunctionCall(filter, "keepAliveResponse", "reload");
 				logger.log(Level.SEVERE, "No keepalive from "+uuid_key+" in 60 seconds. Session will be killed.");
 			} else {
-				addFunctionCall(filter, "keepAliveResponse", true);
+				addFunctionCall(filter, "keepAliveResponse", "ok");
 			}
-		} else { // tomcat rebooted?	
-			addFunctionCallAll("keepAliveResponse", true);
+		} else { // connection re-established	
+			if(sessionkey.containsValue(smSession)) {
+				recoverSession(uuid_key, browser, smSession);
+				BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
+				filter.add(UUID_KEY, new Check(uuid_key, false));
+				addFunctionCall(filter, "keepAliveResponse", "ui-session");
+			} else if(StateMachine.getInstance().containSession(smSession)) {
+				recoverSession(uuid_key, browser, smSession);
+				BrowserScriptSessionFilter filter = new BrowserScriptSessionFilter();
+				filter.add(UUID_KEY, new Check(uuid_key, false));
+				addFunctionCall(filter, "keepAliveResponse", "state-session");
+			} else {
+				addFunctionCallAll("keepAliveResponse", uuid_key);
+				
+			}
+			
+
 		}
 		sessionTimers.put(uuid_key, System.currentTimeMillis());
 	}

@@ -40,16 +40,17 @@ var lastTimestamp = new Date().getTime();
 var connectionBroken = false;
 //This function is meant to monitor the dwr channel and reload the page incase of break in the channel
 function keepAlive() {
-    top.LayoutEventsHandler.isAlive(uuid_key, browser, 
+    top.LayoutEventsHandler.isAlive(uuid_key, session, browser, 
     {
      	timeout:10000,
-        errorHandler:function(message) { connectionBroken = true; }
+        errorHandler:function(message) { connectionBroken = true;console.log('noConnection'); }
     });
 
 }
 
 function keepAliveResponse(sessionOpen) {
-    if((connectionBroken == true || sessionOpen == false) && browser != "mobile")    {
+	console.log('keepAliveResponse '+sessionOpen);
+    if(sessionOpen == "reload" || sessionOpen == "state-session")    {
         document.location.href="index.jsp?browser="+browser+"&session="+session+"&uuid_key="+uuid_key;
     	connectionBroken = false;
     }
@@ -60,7 +61,7 @@ function doOnload() {
 	dwr.engine.setActiveReverseAjax(true);
 	LayoutEventsHandler.initSession(uuid_key, browser, requestIP, method, getFullWidth(), getFullHeight(), session, statemachine);
 	setInterval('keepAlive()', 30000);
-	dwr.engine.setErrorHandler(function(message) { connectionBroken = true;});
+	dwr.engine.setErrorHandler(function(message,error) { console.debug(message,error);});
 }
 
 /**

@@ -10,5 +10,7 @@
     <create creator="new" javascript="Control">
       <param name="class" value="org.tandembrowsing.io.ajax.Control"/>
     </create>
+    <convert match="java.lang.Exception" converter="exception"/>
+    <convert match="java.lang.StackTraceElement" converter="bean"/>
   </allow>  
 </dwr>

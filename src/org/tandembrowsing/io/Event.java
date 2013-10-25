@@ -149,26 +149,29 @@ public class Event {
 		return !eventDocument.getRootElement().getChildren(ELEMENT_OPERATION).isEmpty();
 	}
 
-	public String getOperationsJSON() {
-		List <Operation> operations = getOperations();
-		Iterator <Operation> it = operations.iterator();
-		if (it.hasNext()) {
-			String result = ",\"operations\":[";
-			boolean first = true;
-			while(it.hasNext())	{
-				Operation op = it.next();
-				if(!first)
-					result += ",";
-					
-				result += "{\"name\":\""+op.getName()+"\"";				
-				result += op.getParametersJSON();
-				result += "}";				
-				first = false;
-			}	
-			result += "]";
-			return result;
-		} else 
+	public static String getOperationsJSON(List <Operation> operations) {
+		if(operations == null) {
 			return "";
+		} else {
+			Iterator <Operation> it = operations.iterator();
+			if (it.hasNext()) {
+				String result = ",\"operations\":[";
+				boolean first = true;
+				while(it.hasNext())	{
+					Operation op = it.next();
+					if(!first)
+						result += ",";
+						
+					result += "{\"name\":\""+op.getName()+"\"";				
+					result += op.getParametersJSON();
+					result += "}";				
+					first = false;
+				}	
+				result += "]";
+				return result;
+			} else 
+				return "";
+		}
 	}
 		
 

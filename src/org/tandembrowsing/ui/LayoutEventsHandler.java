@@ -57,8 +57,8 @@ public class LayoutEventsHandler {
 		LayoutManagerView.getInstance().removeCallback(correlationId);
 	}
 	
-	public synchronized void isAlive(String uuid_key, String browser) {		
-		LayoutManagerView.getInstance().keepAlive(uuid_key, browser);			
+	public synchronized void isAlive(String uuid_key, String session, String browser) {		
+		LayoutManagerView.getInstance().keepAlive(uuid_key, session, browser);			
 	}
 	
 	public synchronized void playbackError(String message) {

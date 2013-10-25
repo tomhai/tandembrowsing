@@ -1,5 +1,6 @@
 package org.tandembrowsing.state;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,7 +33,6 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private SCXMLExecutor executor;
 	private String recoveryState = null;
 	private boolean persistent = false;
-
 	private static LayoutManager layoutManager;
 	private static Logger logger = Logger.getLogger("org.tandembrowsing");
 	private Map <String, List<Operation>> overrideOperations = new HashMap<String, List<Operation>>();
@@ -143,8 +143,7 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	
 	@Override
 	public void onEntry(TransitionTarget state) {
-		// TODO Auto-generated method stub
-		logger.info("/"+ state.getId());
+		logger.info("/"+ state.getId());	
 		// check if this is the init state due to a recovery. 
 		// if yes, then don't create the UI, as it is recovered separately
 		if(recoveryState != null) {
@@ -173,6 +172,7 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 				logger.log(Level.SEVERE,e.getMessage(),e);
 			}
 		}
+
 	}
 	@Override
 	public void onExit(TransitionTarget state) {
