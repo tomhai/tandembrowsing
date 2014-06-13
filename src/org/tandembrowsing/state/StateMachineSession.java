@@ -27,11 +27,6 @@ import org.tandembrowsing.model.VirtualScreen;
 import org.tandembrowsing.model.MultipartPage;
 import org.tandembrowsing.model.ParsingException;
 import org.tandembrowsing.ui.LayoutManager;
-// remove from opensource
-import org.tandembrowsing.io.amqp.Publisher;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 
 public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private String smSession;
@@ -40,8 +35,6 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private SCXMLExecutor executor;
 	private String recoveryState = null;
 	private boolean persistent = false;
-	
-	private DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
 
 	private static LayoutManager layoutManager;
 	private static Logger logger = Logger.getLogger("org.tandembrowsing");
