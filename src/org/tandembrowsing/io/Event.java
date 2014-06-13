@@ -37,7 +37,6 @@ public class Event {
 	public static final String SET_ATTRIBUTE = "setAttribute";
 	public static final String GET_ATTRIBUTE = "getAttribute";
 	public static final String RELOAD = "reload";
-	public static final String RESIZE_AND_MOVE = "resizeAndMove";
 	public static final String MUTE = "mute";
 	public static final String UNMUTE = "unMute";
 	

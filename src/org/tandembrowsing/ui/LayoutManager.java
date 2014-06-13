@@ -26,7 +26,7 @@ public class LayoutManager {
 
 	private Map <String, MultipartPage> layouts = new HashMap<String, MultipartPage>(); 
 	private static LayoutManagerView view;
-	private String hostName = System.getenv("HOSTNAME");
+	private String hostName = "localhost";//System.getenv("HOSTNAME");
 		
 	private LayoutManager() {
 		view = LayoutManagerView.getInstance();
@@ -67,29 +67,7 @@ public class LayoutManager {
 		logger.log(Level.INFO, "reload " +virtualscreen.getId());
 		setContent(smSession, virtualscreen);
 	}
-	
-	public void resizeAndMove(String smSession, Operation operation) throws LayoutException {
-		VirtualScreen modifiedVirtualScreen = layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID));
-		if(modifiedVirtualScreen == null)
-			throw new LayoutException("VirtualScreen "+operation.getParameterValue(VirtualScreen.ID)+" does not exits. resizeAndMove ignored.");
-		if(modifiedVirtualScreen.isResizable()) {
-			if(operation.hasParameter(VirtualScreen.WIDTH))
-				modifiedVirtualScreen.setWidth(Float.parseFloat(operation.getParameterValue(VirtualScreen.WIDTH)));
-			if(operation.hasParameter(VirtualScreen.HEIGHT))
-				modifiedVirtualScreen.setHeight(Float.parseFloat(operation.getParameterValue(VirtualScreen.HEIGHT)));
-			if(operation.hasParameter(VirtualScreen.X_POSITION))
-				modifiedVirtualScreen.setXPosition(Float.parseFloat(operation.getParameterValue(VirtualScreen.X_POSITION)));
-			if(operation.hasParameter(VirtualScreen.Y_POSITION))
-				modifiedVirtualScreen.setYPosition(Float.parseFloat(operation.getParameterValue(VirtualScreen.Y_POSITION)));
-			if(operation.hasParameter(VirtualScreen.Z_INDEX))
-				modifiedVirtualScreen.setZIndex(Integer.parseInt(operation.getParameterValue(VirtualScreen.Z_INDEX)));
-			view.modifyVirtualScreen(smSession, modifiedVirtualScreen);
-			logger.log(Level.INFO, operation.getName()+" " +modifiedVirtualScreen.toString());
-		} else {
-			logger.severe("resizeAndMove ignored for "+operation.getParameterValue(VirtualScreen.ID));
-		}
-	}
-	
+		
 	
 	/**
 	 * setContent sets new content on a given virtualscreen that already exist on the layout
@@ -99,7 +77,6 @@ public class LayoutManager {
 	 */
 	public void setContent(String smSession, VirtualScreen virtualscreen) throws LayoutException {
 		try {
-			virtualscreen.setResource(virtualscreen.getResource());
 			logger.log(Level.INFO, "setContent " +virtualscreen.toString());
 			view.setContent(smSession, virtualscreen);
 		} catch (LayoutException e) {
@@ -188,10 +165,10 @@ public class LayoutManager {
 	 *    3) VirtualScreen has been REMOVED
 	 *       - remove virtualscreen (ignore possible override operation)
 	 */
-	public void changeLayout(String smSession, Map <String, VirtualScreen> newVirtualScreens, Set <String> operationTypes) {
+	public void changeLayout(String smSession, Map <String, VirtualScreen> newVirtualScreens, Set <String> operationTypes, String branch, String parallel) {
 		try {
 			// calculate difference "vector" with special formula
-			Map <VirtualScreen, String> diff = layouts.get(smSession).difference(newVirtualScreens, operationTypes);				
+			Map <VirtualScreen, String> diff = layouts.get(smSession).difference(newVirtualScreens, operationTypes, branch, parallel);				
 			Iterator <Map.Entry<VirtualScreen, String>> it = diff.entrySet().iterator();
 			while (it.hasNext()) {
 		        Map.Entry <VirtualScreen, String> pairs = (Map.Entry<VirtualScreen, String>)it.next();
@@ -242,9 +219,7 @@ public class LayoutManager {
 			setContent(smSession, modifiedVirtualScreen);
 		} else if (operation.getName().equals("reload")) {
 			reload(smSession, layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID)));
-		} else if (operation.getName().equals("resizeAndMove")) {
-			resizeAndMove(smSession, operation);
-		} else if (operation.getName().equals("mute")) {
+		}  else if (operation.getName().equals("mute")) {
 			// test first we can mute
 			if(operation.getParameterValue(VirtualScreen.ID).equals("broadcast") && layouts.get(smSession).hasVirtualScreen(operation.getParameterValue(VirtualScreen.ID))) {
 				VirtualScreen virtualscreen = layouts.get(smSession).getVirtualScreen(operation.getParameterValue(VirtualScreen.ID));
@@ -310,5 +285,11 @@ public class LayoutManager {
 		view.setStateMachine(smSession, stateMachine);
 		
 	}
+	
+	public MultipartPage getMultipartPage(String smSession) {
+		return layouts.get(smSession);		
+	}
+
+
 
 }

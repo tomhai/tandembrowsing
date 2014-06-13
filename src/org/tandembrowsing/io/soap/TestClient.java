@@ -40,20 +40,6 @@ public class TestClient implements IEventThread {
 							setContent.addParameter("id", argsO[1]);
 							setContent.addParameter("resource", argsO[2]);				
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+",url:"+argsO[2]+")");
-						} else if(argsO[0].equalsIgnoreCase("resizeAndMove")) {
-							Operation resizeAndMove = event.addOperation(argsO[0]);
-							resizeAndMove.addParameter(VirtualScreen.ID, argsO[1]);
-							if(!argsO[2].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.WIDTH, argsO[2]);	
-							if(!argsO[3].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.HEIGHT, argsO[3]);
-							if(!argsO[4].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.X_POSITION, argsO[4]);
-							if(!argsO[5].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.Y_POSITION, argsO[5]);
-							if(!argsO[6].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.Z_INDEX, argsO[6]);	
-							logger.info(argsO[0]+"("+"id:"+argsO[1]+",width:"+argsO[2]+",height:"+argsO[3]+",xPosition:"+argsO[4]+",yPosition:"+argsO[5]+",zIndex:"+argsO[6]+")");
 						} else if(argsO[0].equalsIgnoreCase("reload") || argsO[0].equalsIgnoreCase("mute") || argsO[0].equalsIgnoreCase("unMute")) {
 							Operation reload = event.addOperation(argsO[0]);
 							reload.addParameter(VirtualScreen.ID, argsO[1]);		
@@ -63,7 +49,6 @@ public class TestClient implements IEventThread {
 						} else if (argsO[0].equalsIgnoreCase("help")) {
 							System.out.println("\nSupported operations:");
 							System.out.println("  setContent <id> <url>");
-							System.out.println("  resizeAndMove <id> <width> <height> <xPosition> <yPosition> <zIndex> (value 'n' means no change)");
 							System.out.println("  reload <id>");
 							System.out.println("  run\n");
 						} else {
@@ -85,20 +70,6 @@ public class TestClient implements IEventThread {
 							setContent.addParameter(VirtualScreen.ID, argsO[1]);
 							setContent.addParameter(VirtualScreen.RESOURCE, argsO[2]);				
 							logger.info(argsO[0]+"("+"id:"+argsO[1]+",url:"+argsO[2]+")");
-						} else if(argsO[0].equalsIgnoreCase("resizeAndMove")) {
-							Operation resizeAndMove = event.addOperation(argsO[0]);
-							resizeAndMove.addParameter(VirtualScreen.ID, argsO[1]);
-							if(!argsO[2].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.WIDTH, argsO[2]);	
-							if(!argsO[3].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.HEIGHT, argsO[3]);
-							if(!argsO[4].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.X_POSITION, argsO[4]);
-							if(!argsO[5].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.Y_POSITION, argsO[5]);
-							if(!argsO[6].equalsIgnoreCase("n"))
-								resizeAndMove.addParameter(VirtualScreen.Z_INDEX, argsO[6]);	
-							logger.info(argsO[0]+"("+"id:"+argsO[1]+",width:"+argsO[2]+",height:"+argsO[3]+",xPosition:"+argsO[4]+",yPosition:"+argsO[5]+",zIndex:"+argsO[6]+")");
 						} else if(argsO[0].equalsIgnoreCase("reload") || argsO[0].equalsIgnoreCase("mute") || argsO[0].equalsIgnoreCase("unMute")) {
 							Operation reload = event.addOperation(argsO[0]);
 							reload.addParameter(VirtualScreen.ID, argsO[1]);		
@@ -108,7 +79,6 @@ public class TestClient implements IEventThread {
 						} else if(argsO[0].equalsIgnoreCase("help")) {
 							System.out.println("\nSupported operations:");
 							System.out.println("  setContent <id> <url>");
-							System.out.println("  resizeAndMove <id> <width> <height> <xPosition> <yPosition> <zIndex> (value 'n' means no change)");
 							System.out.println("  reload <id>");
 							System.out.println("  mute <id>");
 							System.out.println("  unMute <id>");

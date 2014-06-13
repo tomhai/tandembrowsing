@@ -22,12 +22,12 @@ import org.tandembrowsing.state.StateMachineSession;
 
 public class DBUtil {
 	private static Logger logger = Logger.getLogger("org.tandembrowsing.io.db");
-	private static final String INSERT_VIRTUALSCREEN = "insert into virtualscreens (session, id, resource, browser, width, height, xPosition, yPosition, zIndex, border, resizable) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-	private static final String UPDATE_VIRTUALSCREEN = "update virtualscreens set resource = ?, browser = ?, width = ?, height = ?, xPosition = ?, yPosition = ?, zIndex = ?, border = ?, resizable = ? where session = ? and id = ?";
+	private static final String INSERT_VIRTUALSCREEN = "insert into virtualscreens (session, id, resource, browser, width, height, xPosition, yPosition, zIndex, border) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	private static final String UPDATE_VIRTUALSCREEN = "update virtualscreens set resource = ?, browser = ?, width = ?, height = ?, xPosition = ?, yPosition = ?, zIndex = ?, border = ? where session = ? and id = ?";
 	private static final String DELETE_VIRTUALSCREENS = "delete from virtualscreens where session = ?";
 	private static final String DELETE_STATEMACHINES = "delete from statemachines where session = ?";
 	private static final String DELETE_STATEMACHINES_NOPERSISTENT = "delete from statemachines where persistent = 0";
-	private static final String LOAD_VIRTUALSCREENS = "select id, resource, browser, width, height, xPosition, yPosition, zIndex, border, resizable from virtualscreens where session = ? order by insertion_order";
+	private static final String LOAD_VIRTUALSCREENS = "select id, resource, browser, width, height, xPosition, yPosition, zIndex, border from virtualscreens where session = ? order by insertion_order";
 	private static final String READ_STATE = "select state from statemachines where session = ?";	
 	private static final String GET_STATEMACHINES = "select session, url, persistent, state from statemachines where persistent = 1";
 	private static final String SET_STATEMACHINE = "INSERT INTO statemachines (session, url, persistent) VALUES (?,?,?) ON DUPLICATE KEY UPDATE url=?;";
@@ -85,7 +85,6 @@ public class DBUtil {
         	pstmt.setFloat(8, cell.getYPosition());
         	pstmt.setInt(9, cell.getZIndex());
         	pstmt.setFloat(10, cell.getBorder());
-        	pstmt.setBoolean(11, cell.isResizable());
         	pstmt.executeUpdate();      
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Cell insert to db failed. Inmemory operation only.", e);
@@ -107,7 +106,7 @@ public class DBUtil {
 			ResultSet rset = pstmt.executeQuery();
 			while(rset.next()) {
 				String id = rset.getString(1);
-				cells.put(id, new VirtualScreen(id, rset.getString(2), rset.getString(3), rset.getFloat(4), rset.getFloat(5), rset.getFloat(6), rset.getFloat(7), rset.getInt(8), rset.getFloat(9), rset.getBoolean(10)));
+				cells.put(id, new VirtualScreen(id, rset.getString(2), rset.getString(3), rset.getFloat(4), rset.getFloat(5), rset.getFloat(6), rset.getFloat(7), rset.getInt(8), rset.getFloat(9)));
 			}
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Cell insert to db failed. Inmemory operation only.", e);
@@ -151,7 +150,6 @@ public class DBUtil {
         	pstmt.setFloat(6, cell.getYPosition());
         	pstmt.setFloat(7, cell.getZIndex());
         	pstmt.setFloat(8, cell.getBorder());
-			pstmt.setBoolean(9, cell.isResizable());
 			pstmt.setString(10, smSession);
 			pstmt.setString(11, cell.getId());
         	pstmt.executeUpdate();      

@@ -1,6 +1,7 @@
 package org.tandembrowsing.state;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,6 +15,7 @@ import org.apache.commons.scxml.ErrorReporter;
 import org.apache.commons.scxml.SCXMLExecutor;
 import org.apache.commons.scxml.SCXMLListener;
 import org.apache.commons.scxml.model.Data;
+import org.apache.commons.scxml.model.Parallel;
 import org.apache.commons.scxml.model.Transition;
 import org.apache.commons.scxml.model.TransitionTarget;
 import org.w3c.dom.Node;
@@ -25,6 +27,11 @@ import org.tandembrowsing.model.VirtualScreen;
 import org.tandembrowsing.model.MultipartPage;
 import org.tandembrowsing.model.ParsingException;
 import org.tandembrowsing.ui.LayoutManager;
+// remove from opensource
+import org.tandembrowsing.io.amqp.Publisher;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private String smSession;
@@ -33,9 +40,14 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private SCXMLExecutor executor;
 	private String recoveryState = null;
 	private boolean persistent = false;
+	
+	private DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+
 	private static LayoutManager layoutManager;
 	private static Logger logger = Logger.getLogger("org.tandembrowsing");
 	private Map <String, List<Operation>> overrideOperations = new HashMap<String, List<Operation>>();
+	// smsparallel is a history Map to keep track which parallel states are active and their branches 
+	private Map <String, String> branches = new HashMap<String, String>();
 	
 	public StateMachineSession (String smSession, String stateMachine, boolean persistent) {
 		layoutManager = LayoutManager.getInstance();
@@ -112,20 +124,6 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 						newVirtualScreens.get(overriddenVirtualScreenId).setResource(LayoutManager.parseResource(overriddenResource, newVirtualScreens.get(overriddenVirtualScreenId).getResource()));
 						contentChanged.add(overriddenVirtualScreenId+Event.SET_CONTENT);	
 						logger.fine("Override virtualscreen "+overriddenVirtualScreenId+" content with "+ overriddenResource);
-					} else if(op.getName().equals(Event.RESIZE_AND_MOVE)) {
-						VirtualScreen modifiedVirtualScreen = newVirtualScreens.get(overriddenVirtualScreenId);
-						if(op.hasParameter(VirtualScreen.WIDTH))
-							modifiedVirtualScreen.setWidth(Float.parseFloat(op.getParameterValue(VirtualScreen.WIDTH)));
-						if(op.hasParameter(VirtualScreen.HEIGHT))
-							modifiedVirtualScreen.setHeight(Float.parseFloat(op.getParameterValue(VirtualScreen.HEIGHT)));
-						if(op.hasParameter(VirtualScreen.X_POSITION))
-							modifiedVirtualScreen.setXPosition(Float.parseFloat(op.getParameterValue(VirtualScreen.X_POSITION)));
-						if(op.hasParameter(VirtualScreen.Y_POSITION))
-							modifiedVirtualScreen.setYPosition(Float.parseFloat(op.getParameterValue(VirtualScreen.Y_POSITION)));
-						if(op.hasParameter(VirtualScreen.Z_INDEX))
-							modifiedVirtualScreen.setZIndex(Integer.parseInt(op.getParameterValue(VirtualScreen.Z_INDEX)));
-						
-						logger.fine("Override virtualscreen "+overriddenVirtualScreenId+" dimensions");
 					} else if(op.getName().equals(Event.MUTE) || op.getName().equals(Event.UNMUTE)) {
 						VirtualScreen modifiedVirtualScreen = newVirtualScreens.get(overriddenVirtualScreenId);
 						// check if this is just a parameter update
@@ -141,42 +139,75 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 		
 	}
 	
+	private String recursiveFindBranch(TransitionTarget state) {
+		if(state.getParent() != null) {
+			if(branches.containsKey(state.getParent().getId())) {
+				return state.getParent().getId();
+			} else {
+				return recursiveFindBranch(state.getParent());
+			}
+		} else 
+			return null;
+	}
+	
 	@Override
 	public void onEntry(TransitionTarget state) {
 		logger.info("/"+ state.getId());	
-		// check if this is the init state due to a recovery. 
-		// if yes, then don't create the UI, as it is recovered separately
-		if(recoveryState != null) {
-			recoveryState = null;
+
+		if(state instanceof Parallel) {			
+			Set <TransitionTarget> children = ((Parallel) state).getChildren();
+			Iterator <TransitionTarget> chi = children.iterator();
+			int i = 0;
+			while(chi.hasNext()) {
+				i++;
+				String temp = chi.next().getId();
+				branches.put(temp, state.getId());
+				if(i == children.size())
+					layoutManager.getMultipartPage(smSession).setCurrentVirtualScreensForRemoval(temp, state.getId()); 
+			}
 		} else {
-			DBUtil.setState(this.smSession, state.getId());
-			try {
-				List <Operation> overrideList = getOverrideOperation(state);
-				if( state.getDatamodel() != null) {
-					List <Data> list = state.getDatamodel().getData();
-					if (list.size() != 1) {
-						logger.info("Unexpected number of Data elements size "+list.size());
-					} else {
-						Data data = (Data)list.get(0);
-						Node multipartpage = data.getNode().getFirstChild();
-						// parse the target state virtual multipartpage to newMultipartpage
-						Map <String, VirtualScreen> newMultipartpage = MultipartPage.parseMultipartPage(multipartpage);
-						// override newVirtualScreens with possible overrides 
-						Set <String> operationTypes = overrideVirtualScreens(overrideList, newMultipartpage, state);
-						
-						layoutManager.changeLayout(smSession, newMultipartpage, operationTypes);
-						
+			String branch = null;
+			String parallel = null;
+			if(branches.size() > 0) {
+				branch = recursiveFindBranch(state);
+				parallel = branches.get(branch);
+			}
+			// if yes, then don't create the UI, as it is recovered separately			
+			if(recoveryState != null) {
+				recoveryState = null;
+			} else {
+				DBUtil.setState(this.smSession, state.getId());
+				try {
+					List <Operation> overrideList = getOverrideOperation(state);
+
+					if( state.getDatamodel() != null) {
+						List <Data> list = state.getDatamodel().getData();
+						if (list.size() != 1) {
+							logger.info("Unexpected number of Data elements size "+list.size());
+						} else {
+							Data data = (Data)list.get(0);
+							Node multipartpage = data.getNode().getFirstChild();
+							// parse the target state virtual multipartpage to newMultipartpage
+							Map <String, VirtualScreen> newMultipartpage = MultipartPage.parseMultipartPage(multipartpage);
+							// override newVirtualScreens with possible overrides 
+							Set <String> operationTypes = overrideVirtualScreens(overrideList, newMultipartpage, state);
+							
+							layoutManager.changeLayout(smSession, newMultipartpage, operationTypes, branch, parallel);
+							
+						}
 					}
+				} catch (ParsingException e) {
+					logger.log(Level.SEVERE,e.getMessage(),e);
 				}
-			} catch (ParsingException e) {
-				logger.log(Level.SEVERE,e.getMessage(),e);
 			}
 		}
-
 	}
 	@Override
 	public void onExit(TransitionTarget state) {
-		logger.fine("Exit: "+ state.getId());		
+		logger.fine("Exit: "+ state.getId());	
+		if(state instanceof Parallel) {		
+			while(branches.values().remove(state.getId()));
+		}
 	}
 	@Override
 	public void onTransition(TransitionTarget from, TransitionTarget to, Transition transition) {

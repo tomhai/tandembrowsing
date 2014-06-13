@@ -2,6 +2,7 @@ package org.tandembrowsing.model;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.simple.JSONObject;
@@ -19,10 +20,11 @@ public class VirtualScreen {
 	private float yPosition;
 	private int zIndex;
 	private float border;
-	private boolean resizable;
 	private String session_id = null;
 	private String user_id = null;
 	private String lease_id = null; 
+	// vcparallel is a history Map to keep track which branch added it to make decisions on removals
+	private Map <String, String> branch = new HashMap<String, String>();
 	
 	public static final String ID = "id";
 	public static final String RESOURCE = "resource";
@@ -33,16 +35,16 @@ public class VirtualScreen {
 	public static final String Y_POSITION = "yPosition";
 	public static final String Z_INDEX = "zIndex";
 	public static final String BORDER = "border";
-	public static final String RESIZABLE = "resizable";
 	public static final String SESSION_ID = "session_id";
 	public static final String USER_ID = "user_id";
 	public static final String LEASE_ID = "lease_id";
+	
 		
 	public VirtualScreen(String id, String resource, String browser, float width, float height, float xPosition, float yPosition) {
-		this(id, resource, browser, width, height, xPosition, yPosition, 0, 0, false);
+		this(id, resource, browser, width, height, xPosition, yPosition, 0, 0);
 	}
 		
-	public VirtualScreen(String id, String resource, String browser, float width, float height, float xPosition, float yPosition, int zIndex, float border, boolean resizable) {
+	public VirtualScreen(String id, String resource, String browser, float width, float height, float xPosition, float yPosition, int zIndex, float border) {
 		this.id = id;
 		this.resource = resource;
 		this.browser = browser;
@@ -52,7 +54,6 @@ public class VirtualScreen {
 		this.yPosition = yPosition;
 		this.zIndex = zIndex;
 		this.border = border;
-		this.resizable = resizable;
 		// store virtualscreen in db here
 		if(resource.indexOf("?") != -1) {
 			try {
@@ -66,7 +67,7 @@ public class VirtualScreen {
 		}
 	}
 	
-	public VirtualScreen(String id, String resource, String browser, float width, float height, float xPosition, float yPosition, int zIndex, float border, boolean resizable, String session_id, String user_id, String lease_id) {
+	public VirtualScreen(String id, String resource, String browser, float width, float height, float xPosition, float yPosition, int zIndex, float border, String session_id, String user_id, String lease_id) {
 		this.id = id;
 		this.resource = resource;
 		this.browser = browser;
@@ -76,7 +77,6 @@ public class VirtualScreen {
 		this.yPosition = yPosition;
 		this.zIndex = zIndex;
 		this.border = border;
-		this.resizable = resizable;
 		this.session_id = session_id;
 		this.user_id = user_id;
 		this.lease_id = lease_id;				
@@ -86,7 +86,7 @@ public class VirtualScreen {
 	
 	// a copy constructor
 	public VirtualScreen(VirtualScreen virtualscreen) {
-		this(virtualscreen.id, virtualscreen.resource, virtualscreen.browser, virtualscreen.width, virtualscreen.height, virtualscreen.xPosition, virtualscreen.yPosition, virtualscreen.zIndex, virtualscreen.border, virtualscreen.resizable, virtualscreen.session_id, virtualscreen.user_id, virtualscreen.lease_id);
+		this(virtualscreen.id, virtualscreen.resource, virtualscreen.browser, virtualscreen.width, virtualscreen.height, virtualscreen.xPosition, virtualscreen.yPosition, virtualscreen.zIndex, virtualscreen.border, virtualscreen.session_id, virtualscreen.user_id, virtualscreen.lease_id);
 	}
 	
 	public static VirtualScreen parse(Element virtualscreen) throws ParsingException {
@@ -105,8 +105,7 @@ public class VirtualScreen {
 		float yPosition = virtualscreen.getAttribute("yPosition").length() == 0 ? 0 :Float.parseFloat(virtualscreen.getAttribute("yPosition"));
 		int zIndex = virtualscreen.getAttribute("zIndex").length() == 0 ? 0 : Integer.parseInt(virtualscreen.getAttribute("zIndex"));
 		float border = virtualscreen.getAttribute("border").length() == 0 ? 0 : Float.parseFloat(virtualscreen.getAttribute("border"));
-		boolean resizable = virtualscreen.getAttribute("resizable").length() == 0 ? false : Boolean.parseBoolean(virtualscreen.getAttribute("resizable"));
-		return new VirtualScreen(id, resource, browser, width, height, xPosition, yPosition, zIndex, border, resizable);
+		return new VirtualScreen(id, resource, browser, width, height, xPosition, yPosition, zIndex, border);
 	}
 
 	public String getId() {
@@ -238,14 +237,6 @@ public class VirtualScreen {
 		return border > 0;
 	}
 
-	public void setResizable(boolean resizable) {
-		this.resizable = resizable;
-	}
-
-	public boolean isResizable() {
-		return resizable;
-	}
-
 	public void setZIndex(int zIndex) {
 		this.zIndex = zIndex;
 	}
@@ -280,7 +271,7 @@ public class VirtualScreen {
 	
 	@Override
 	public String toString() {
-		return "id="+id+";resource="+resource+";browser="+browser+";width="+width+";height="+height+";xPosition="+xPosition+";yPosition="+yPosition+";zIndex="+zIndex+";border="+border+";resizable="+resizable+";session_id="+session_id+";user_id="+user_id+";lease_id="+lease_id;
+		return "id="+id+";resource="+resource+";browser="+browser+";width="+width+";height="+height+";xPosition="+xPosition+";yPosition="+yPosition+";zIndex="+zIndex+";border="+border+";session_id="+session_id+";user_id="+user_id+";lease_id="+lease_id;
 	}
 
 	private Map <String,String> initMap(String search) throws UnsupportedEncodingException {
@@ -305,7 +296,6 @@ public class VirtualScreen {
 		virtualscreen.put(Y_POSITION, yPosition);
 		virtualscreen.put(Z_INDEX, zIndex);
 		virtualscreen.put(BORDER, border);
-		virtualscreen.put(RESIZABLE, resizable);
 		return virtualscreen;
 	}
 
@@ -316,4 +306,9 @@ public class VirtualScreen {
 		this.yPosition = virtualscreen.yPosition;
 		this.zIndex = virtualscreen.zIndex;		
 	}
+
+	public Map <String, String> getBranch() {
+		return branch;
+	}
+
 }

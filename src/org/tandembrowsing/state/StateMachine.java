@@ -94,9 +94,9 @@ public class StateMachine {
 	        newexec.setRootContext(new ELContext());
 	        // if reached here, then store it to db 
 	        DBUtil.setStateMachine(recoverState);
-			newexec.go();
-			//this will kill the previous state machine if exist for the same smSession
 			recoverState.setExecutor(newexec);
+	        newexec.go();
+			//this will kill the previous state machine if exist for the same smSession
 			logger.info("Statemachines running " +stateMachineSessions.size());
 		} catch (Exception e) {
 			if(recoverState.hasPreviousStatemachine()) {
@@ -113,6 +113,11 @@ public class StateMachine {
 		Set <State> currentStates = stateMachineSessions.get(smSession).getExecutor().getCurrentStatus().getStates();
 		return ((State)currentStates.iterator().next()).getId();
 	}
+	
+	public StateMachineSession getStateMachineSession(String smSession) {
+		return stateMachineSessions.get(smSession);
+	}
+	
 	
 	private String getCurrentStateMachine(String smSession) {
 		return stateMachineSessions.get(smSession).getStateMachine();

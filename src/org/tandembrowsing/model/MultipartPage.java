@@ -11,10 +11,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -24,7 +24,7 @@ import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 
 import org.tandembrowsing.io.Event;
 import org.tandembrowsing.io.db.DBUtil;
-import org.tandembrowsing.ui.LayoutManagerView;
+
 
 public class MultipartPage {
 
@@ -57,7 +57,7 @@ public class MultipartPage {
 	public MultipartPage(String hostname, String smSession) {
 		this.hostname = hostname;
 		this.smSession = smSession;
-		virtualscreens = Collections.synchronizedMap(new LinkedHashMap<String, VirtualScreen>());
+		virtualscreens = new ConcurrentHashMap<String, VirtualScreen>();
 		DBUtil.load(smSession, virtualscreens);
 	} 
 
@@ -101,7 +101,7 @@ public class MultipartPage {
 	}
 	
 	public static Map <String, VirtualScreen> parseMultipartPage(Node multipartpage) throws ParsingException {
-		Map <String, VirtualScreen> newmultipartpage = Collections.synchronizedMap(new LinkedHashMap<String, VirtualScreen>());
+		Map <String, VirtualScreen> newmultipartpage = new ConcurrentHashMap<String, VirtualScreen>();
 		if(multipartpage.getNamespaceURI() != DEFAULTNS || multipartpage.getLocalName() != "multipartpage")
 			throw new ParsingException("Invalid name or namespace "+multipartpage.getLocalName()+" : "+multipartpage.getNamespaceURI());
 		NodeList list = multipartpage.getChildNodes();
@@ -154,57 +154,65 @@ public class MultipartPage {
 	 * @param parsedVirtualScreens
 	 * @return
 	 */
-	public Map <VirtualScreen, String> difference(Map<String, VirtualScreen> parsedVirtualScreens, Set <String> contentChanged) {
+	public Map <VirtualScreen, String> difference(Map<String, VirtualScreen> parsedVirtualScreens, Set <String> contentChanged, String branch, String parallel) {
 		Set <String> keyset = parsedVirtualScreens.keySet();
 		Map <VirtualScreen, String> difference = new HashMap<VirtualScreen, String>();
 		boolean grownvirtualscreen = false;
 		boolean shrunkvirtualscreen = false;
+		
+		Set <String> currentkeyset = virtualscreens.keySet();
+		for(String j : currentkeyset) {
+			// remove the virtualscreens that don't exist anymore
+			// but check first that the virtual screen does not exist in any parallel state
+			if(!parsedVirtualScreens.containsKey(j)) {
+				if(branch == null || (virtualscreens.get(j).getBranch().remove(branch) != null && virtualscreens.get(j).getBranch().size() == 0)) {
+						logger.fine("removed virtualscreen : "+j);
+						difference.put(new VirtualScreen(virtualscreens.get(j)), REMOVED);
+						virtualscreens.remove(j);
+				}
+			}
+		}
+		
+		
 		for(String i : keyset) {
 			// same virtualscreen found
-			if(virtualscreens.containsKey(i)) {
+			if(virtualscreens.containsKey(i)) {	
 				// handle situation, where resource has changed
-				if(!getVirtualScreen(i).getResource().replaceFirst("LM_HOST", hostname).startsWith(parsedVirtualScreens.get(i).getResource().replaceFirst("LM_HOST", hostname)))
+				if(!virtualscreens.get(i).getResource().replaceFirst("LM_HOST", hostname).startsWith(parsedVirtualScreens.get(i).getResource().replaceFirst("LM_HOST", hostname))) {
 					contentChanged.add(i+Event.SET_CONTENT);
-				else // else put the old data back
-					parsedVirtualScreens.get(i).setResource(getVirtualScreen(i).getResource());
-				
-				// if the VirtualScreen is set resizable, its size is considered as outside of statemachine's responsibility
-				if(virtualscreens.get(i).isResizable()) {	
-					parsedVirtualScreens.get(i).copyDimensions(virtualscreens.get(i));
-					difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), EQUAL);
-				} else {
-					// new virtualscreen is equal / smaller / bigger 
-					if (virtualscreens.get(i).hasEqualDimensions(parsedVirtualScreens.get(i))) {
-						logger.fine("equal virtualscreen : "+parsedVirtualScreens.get(i).getId());			
-						difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), EQUAL);			
-					} else if(virtualscreens.get(i).isBigger(parsedVirtualScreens.get(i))) {
-						// make the current smaller and then shrink others
-						logger.fine("shrunk virtualscreen : "+parsedVirtualScreens.get(i).getId());
-						difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), SHRUNK);
-						shrunkvirtualscreen = true;
-					} else {
-						// first delete others and then make this large
-						// this includes also the cases where xyPosition zIndex or border has changed
-						logger.fine("grown virtualscreen : "+parsedVirtualScreens.get(i).getId());
-						difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), GROWN);
-						grownvirtualscreen = true;
-					}	
+					virtualscreens.get(i).setResource(parsedVirtualScreens.get(i).getResource());
 				}
+				// new virtualscreen is equal / smaller / bigger 
+				if (virtualscreens.get(i).hasEqualDimensions(parsedVirtualScreens.get(i))) {
+					logger.fine("equal virtualscreen : "+parsedVirtualScreens.get(i).getId());			
+					difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), EQUAL);			
+				} else if(virtualscreens.get(i).isBigger(parsedVirtualScreens.get(i))) {
+					// make the current smaller and then shrink others
+					logger.fine("shrunk virtualscreen : "+parsedVirtualScreens.get(i).getId());
+					difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), SHRUNK);
+					virtualscreens.get(i).copyDimensions(parsedVirtualScreens.get(i));
+					shrunkvirtualscreen = true;
+				} else {
+					// first delete others and then make this large
+					// this includes also the cases where xyPosition zIndex or border has changed
+					logger.fine("grown virtualscreen : "+parsedVirtualScreens.get(i).getId());
+					difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), GROWN);
+					virtualscreens.get(i).copyDimensions(parsedVirtualScreens.get(i));
+					grownvirtualscreen = true;
+				}	
 			} // the virtualscreen is new 
 			else {
 				// just add the virtualscreen
 				logger.fine("new virtualscreen : "+parsedVirtualScreens.get(i).getId());
 				difference.put(new VirtualScreen(parsedVirtualScreens.get(i)), NEW);
+				virtualscreens.put(parsedVirtualScreens.get(i).getId(), parsedVirtualScreens.get(i));
 			}			
+			//this virtual screen belongs to this branch now
+			if (branch != null)
+				virtualscreens.get(i).getBranch().put(branch, parallel);
 		}
-		Set <String> currentkeyset = virtualscreens.keySet();
-		for(String j : currentkeyset) {
-			// remove the virtualscreens that don't exist anymore
-			if(!parsedVirtualScreens.containsKey(j)) {
-				logger.fine("removed virtualscreen : "+virtualscreens.get(j).getId());
-				difference.put(new VirtualScreen(virtualscreens.get(j)), REMOVED);
-			}
-		}
+		
+
 		Map <VirtualScreen, String> result;
 		// sort the Map based on the CASE
 		if(shrunkvirtualscreen) {
@@ -216,7 +224,6 @@ public class MultipartPage {
 		}
 
 		// finally replace the old virtualscreens by new
-		virtualscreens = parsedVirtualScreens;
 		DBUtil.store(smSession, virtualscreens);
 		
 		return result;
@@ -256,5 +263,10 @@ public class MultipartPage {
 			virtualscreensJSON.add(virtualscreen.toJSON());
 		}
 		return virtualscreensJSON.toJSONString();
+	}
+	
+	public void setCurrentVirtualScreensForRemoval(String branch, String parallel) {
+		for (VirtualScreen virtualscreen : virtualscreens.values())
+			virtualscreen.getBranch().put(branch, parallel);		
 	}
 }
