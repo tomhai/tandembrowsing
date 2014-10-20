@@ -6,9 +6,20 @@ CREATE DATABASE IF NOT EXISTS tandembrowsing;
 USE tandembrowsing;
 
 --
--- Definition of table `cell_state`
+-- Definition of table `statemachines`
 --
-DROP TABLE IF EXISTS `virtualscreens`;
+DROP TABLE IF EXISTS `statemachines`;
+CREATE TABLE `statemachines` (
+  `session` varchar(767) NOT NULL,
+  `url` varchar(1023) NOT NULL,
+  `state` varchar(255) default NULL,
+  `persistent` boolean NOT NULL,
+  PRIMARY KEY (`session`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Definition of table `virtualscreens`
+--
 CREATE TABLE `virtualscreens` (
   `insertion_order` int NOT NULL AUTO_INCREMENT,
   `session` varchar(767) NOT NULL,
@@ -21,14 +32,7 @@ CREATE TABLE `virtualscreens` (
   `yPosition` float default NULL,
   `zIndex` float default NULL,
   `border` float default NULL,
-  `resizable` boolean default NULL,
-  PRIMARY KEY  (`insertion_order`)
+  PRIMARY KEY  (`insertion_order`),
+  CONSTRAINT `session_vs` FOREIGN KEY (`session`) REFERENCES `statemachines` (`session`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-DROP TABLE IF EXISTS `statemachines`;
-CREATE TABLE `statemachines` (
-  `session` varchar(767) NOT NULL,
-  `url` varchar(1023) NOT NULL,
-  `state` varchar(255) default NULL,
-  PRIMARY KEY (`session`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
