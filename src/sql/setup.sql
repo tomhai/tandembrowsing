@@ -32,7 +32,6 @@ CREATE TABLE `virtualscreens` (
   `yPosition` float default NULL,
   `zIndex` float default NULL,
   `border` float default NULL,
-  `resizable` boolean default NULL,
   PRIMARY KEY  (`insertion_order`),
   CONSTRAINT `session_vs` FOREIGN KEY (`session`) REFERENCES `statemachines` (`session`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
