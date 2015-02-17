@@ -27,6 +27,12 @@ import org.tandembrowsing.model.VirtualScreen;
 import org.tandembrowsing.model.MultipartPage;
 import org.tandembrowsing.model.ParsingException;
 import org.tandembrowsing.ui.LayoutManager;
+// remove from opensource
+import org.tandembrowsing.io.amqp.Publisher;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+//--
 
 public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private String smSession;
@@ -35,7 +41,10 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	private SCXMLExecutor executor;
 	private String recoveryState = null;
 	private boolean persistent = false;
-
+	// remove from opensource
+	private Publisher publisher = new Publisher();
+	private DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+	//--
 	private static LayoutManager layoutManager;
 	private static Logger logger = Logger.getLogger("org.tandembrowsing");
 	private Map <String, List<Operation>> overrideOperations = new HashMap<String, List<Operation>>();
@@ -48,6 +57,15 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 		this.setSmSession(smSession);	
 		this.setStateMachine(stateMachine);
 		this.setPersistent(persistent);
+		// remove from opensource
+		if(persistent) {
+			try {
+				publisher.initialize(smSession);
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, "Could not initialize RabbitMQ connection");
+			}
+		}
+		//--
 	}
 	
 	public StateMachineSession (String smSession, String stateMachine, boolean persistent, String recoveryState) {
@@ -146,11 +164,11 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 	@Override
 	public void onEntry(TransitionTarget state) {
 		logger.info("/"+ state.getId());	
-
+		// if parallel state, then store the child branch states to a hashmap for later cleanup
 		if(state instanceof Parallel) {			
 			Set <TransitionTarget> children = ((Parallel) state).getChildren();
 			Iterator <TransitionTarget> chi = children.iterator();
-			int i = 0;
+			int i = 0; 
 			while(chi.hasNext()) {
 				i++;
 				String temp = chi.next().getId();
@@ -172,7 +190,16 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 				DBUtil.setState(this.smSession, state.getId());
 				try {
 					List <Operation> overrideList = getOverrideOperation(state);
-
+					//remove from opensource
+					if(persistent) {				
+						publisher.publish("{\"message_type\":\""+Event.EVENT_CHANGE_STATE+"\","
+								 +"\"instance_id\":\""+smSession+"\","
+								 +"\"target_state\":\""+state.getId()+"\","
+								 +"\"timestamp\":\""+fmt.print(new DateTime())+"\""
+								 +Event.getOperationsJSON(overrideList)
+								 +"}");
+					}
+					//--
 					if( state.getDatamodel() != null) {
 						List <Data> list = state.getDatamodel().getData();
 						if (list.size() != 1) {
@@ -195,11 +222,17 @@ public class StateMachineSession implements SCXMLListener, ErrorReporter {
 			}
 		}
 	}
-	@Override
+
+	/**
+	 * Everytime, when we get out from parallel, we can remove the parallel info and think of the
+	 * remaining virtual screens such like they were created by a non parallel way 
+	 */
 	public void onExit(TransitionTarget state) {
 		logger.fine("Exit: "+ state.getId());	
+		// remove marked branches from here and multipart page as we got out from the parallel
 		if(state instanceof Parallel) {		
 			while(branches.values().remove(state.getId()));
+			layoutManager.getMultipartPage(smSession).removeBranchInfo(state.getId());
 		}
 	}
 	@Override

@@ -163,9 +163,15 @@ public class MultipartPage {
 		Set <String> currentkeyset = virtualscreens.keySet();
 		for(String j : currentkeyset) {
 			// remove the virtualscreens that don't exist anymore
-			// but check first that the virtual screen does not exist in any parallel state
 			if(!parsedVirtualScreens.containsKey(j)) {
-				if(branch == null || (virtualscreens.get(j).getBranch().remove(branch) != null && virtualscreens.get(j).getBranch().size() == 0)) {
+				// remove it from this branch
+				virtualscreens.get(j).getBranch().remove(branch);
+				// check that the virtual screen does not exist in any parallel state
+				// logic is as follows: 
+				//				1: if we are not in a branch OR
+				//				2: if there are no more branch left for the cell
+				//				=> it can be removed	
+				if(branch == null || virtualscreens.get(j).getBranch().size() == 0) {
 						logger.fine("removed virtualscreen : "+j);
 						difference.put(new VirtualScreen(virtualscreens.get(j)), REMOVED);
 						virtualscreens.remove(j);
@@ -268,5 +274,11 @@ public class MultipartPage {
 	public void setCurrentVirtualScreensForRemoval(String branch, String parallel) {
 		for (VirtualScreen virtualscreen : virtualscreens.values())
 			virtualscreen.getBranch().put(branch, parallel);		
+	}
+	
+	public void removeBranchInfo(String parallel) {
+		Set <String> currentkeyset = virtualscreens.keySet();
+		for(String j : currentkeyset)
+			virtualscreens.get(j).getBranch().values().remove(parallel);	
 	}
 }
