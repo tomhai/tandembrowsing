@@ -3,7 +3,7 @@ Tandem Browsing toolkit
 
 This software allows writing tandem browsable web applications by introducing a finite state machine
 based declarative content definition language. The finite state machines use the State Chart XML (SCXML) 
-syntax and each state contain a multipart page definition http://www.tandembrowsing.org/multipartpage, 
+syntax and each state contain a multipart page definition, 
 which allows designing web pages that consist of multiple parts, i.e. virtual screens. The virtual 
 screens can be used to control how different user interface elements are distributed on the browsers. 
 The content of the virtual screens is just plain web pages, which are referred by their URL.
@@ -11,7 +11,7 @@ The content of the virtual screens is just plain web pages, which are referred b
 The toolkit uses a proxy based architecture, i.e the broxy works as a intermediator between the 
 tandem browsable webpages and the client browsers. The software is written mainly using Java and 
 JavaSript languages and needs to be deployed as a Java web application in a Tomcat server. More 
-information is awailable in the project web site http://www.tandembrowsing.org.
+information is awailable in the related publication http://dl.acm.org/citation.cfm?id=2611026.
 
 ## Installation
 
