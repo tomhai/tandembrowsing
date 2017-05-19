@@ -32,7 +32,7 @@ Libraries in eclipse.
 
 ## Contact 
 
-Send any comments to tommi.heikkinen@ee.oulu.fi
+Send any comments to tommi.j.heikkinen@gmail.com
 
 
 
